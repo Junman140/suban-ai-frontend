@@ -26,7 +26,7 @@ export const VoiceVisualization: React.FC<VoiceVisualizationProps> = ({
   return (
     <div className={`relative flex flex-col items-center justify-center ${className}`}>
       {/* Toggle Button */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-4 z-10 flex items-center justify-center">
         <VisualizationToggle mode={mode} onChange={onModeChange} />
       </div>
 
@@ -60,7 +60,7 @@ export const VoiceVisualization: React.FC<VoiceVisualizationProps> = ({
       </div>
 
       {/* State Indicator Text */}
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center flex items-center justify-center">
         <p
           className="text-sm md:text-base font-medium capitalize"
           style={{ color: 'var(--text-secondary)' }}

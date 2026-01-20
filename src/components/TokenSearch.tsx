@@ -52,7 +52,7 @@ const TokenSearch: React.FC = () => {
     >
       <div className="flex items-center gap-4 mb-8">
         <div 
-          className="w-12 h-12 rounded-2xl flex items-center justify-center"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
           style={{
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             boxShadow: 'var(--shadow-md)',
@@ -60,9 +60,9 @@ const TokenSearch: React.FC = () => {
         >
           <Search className="w-6 h-6 text-white" />
         </div>
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text)' }}>Token Explorer</h2>
-          <p className="text-sm opacity-60" style={{ color: 'var(--text-secondary)' }}>Powered by Jupiter Ultra API</p>
+        <div className="flex flex-col justify-center">
+          <h2 className="text-xl md:text-2xl font-bold leading-tight" style={{ color: 'var(--text)' }}>Token Explorer</h2>
+          <p className="text-sm opacity-60 leading-tight" style={{ color: 'var(--text-secondary)' }}>Powered by Jupiter Ultra API</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ const TokenSearch: React.FC = () => {
         <button 
           type="submit" 
           disabled={loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center"
           style={{
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
             color: 'white',
