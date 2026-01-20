@@ -133,10 +133,10 @@ const TokenSearch: React.FC = () => {
             >
               <div className="flex items-center gap-4">
                 {token.logoURI ? (
-                  <img src={token.logoURI} alt={token.symbol} className="w-12 h-12 rounded-xl shadow-sm" />
+                  <img src={token.logoURI} alt={token.symbol} className="w-12 h-12 rounded-xl shadow-sm flex-shrink-0" />
                 ) : (
                   <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
+                    className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0"
                     style={{
                       background: 'var(--bg-hover)',
                       color: 'var(--accent-primary)',
@@ -150,7 +150,7 @@ const TokenSearch: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold truncate" style={{ color: 'var(--text)' }}>{token.name}</h3>
                     <span 
-                      className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider"
+                      className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider flex-shrink-0"
                       style={{
                         background: 'var(--bg-hover)',
                         color: 'var(--accent-secondary)',
@@ -164,7 +164,7 @@ const TokenSearch: React.FC = () => {
                     {token.mint}
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--accent-primary)' }} />
+                <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-2">
