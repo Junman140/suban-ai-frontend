@@ -100,7 +100,7 @@ export const ThemeToggle: React.FC = () => {
     >
       <button
         onClick={() => setTheme('light')}
-        className={`p-2 rounded-lg transition-all duration-200 ${
+        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
           theme === 'light'
             ? 'text-current'
             : 'text-current opacity-60 hover:opacity-100'
@@ -115,7 +115,7 @@ export const ThemeToggle: React.FC = () => {
       </button>
       <button
         onClick={() => setTheme('dark')}
-        className={`p-2 rounded-lg transition-all duration-200 ${
+        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
           theme === 'dark'
             ? 'text-current'
             : 'text-current opacity-60 hover:opacity-100'
@@ -130,7 +130,7 @@ export const ThemeToggle: React.FC = () => {
       </button>
       <button
         onClick={() => setTheme('system')}
-        className={`p-2 rounded-lg transition-all duration-200 ${
+        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
           theme === 'system'
             ? 'text-current'
             : 'text-current opacity-60 hover:opacity-100'

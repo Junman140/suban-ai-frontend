@@ -28,7 +28,7 @@ export const VisualizationToggle: React.FC<VisualizationToggleProps> = ({
     >
       <button
         onClick={() => onChange('character')}
-        className={`p-2 rounded-lg transition-all duration-200 ${
+        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
           mode === 'character' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
         }`}
         style={{
@@ -41,7 +41,7 @@ export const VisualizationToggle: React.FC<VisualizationToggleProps> = ({
       </button>
       <button
         onClick={() => onChange('waves')}
-        className={`p-2 rounded-lg transition-all duration-200 ${
+        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
           mode === 'waves' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
         }`}
         style={{

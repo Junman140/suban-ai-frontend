@@ -173,7 +173,7 @@ const TokenSearch: React.FC = () => {
                   style={{ background: 'var(--bg-hover)' }}
                 >
                   <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <TrendingUp className="w-3 h-3 text-green-500" />
+                    <TrendingUp className="w-3 h-3 text-green-500 flex-shrink-0" />
                     <span>Score</span>
                   </div>
                   <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
@@ -185,7 +185,7 @@ const TokenSearch: React.FC = () => {
                   style={{ background: 'var(--bg-hover)' }}
                 >
                   <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <Users className="w-3 h-3 text-blue-500" />
+                    <Users className="w-3 h-3 text-blue-500 flex-shrink-0" />
                     <span>Holders</span>
                   </div>
                   <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
@@ -197,7 +197,7 @@ const TokenSearch: React.FC = () => {
                   style={{ background: 'var(--bg-hover)' }}
                 >
                   <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <Info className="w-3 h-3 text-purple-500" />
+                    <Info className="w-3 h-3 text-purple-500 flex-shrink-0" />
                     <span>MCap</span>
                   </div>
                   <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
