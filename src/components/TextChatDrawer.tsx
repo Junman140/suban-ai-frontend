@@ -128,14 +128,14 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
           style={{ borderBottomColor: 'var(--border-subtle)' }}
         >
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+            <MessageSquare className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
             <h2 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
               Text Chat
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-hover transition-colors"
+            className="p-2 rounded-lg hover:bg-hover transition-colors flex items-center justify-center"
             style={{ color: 'var(--text-secondary)' }}
             aria-label="Close chat"
           >
@@ -157,11 +157,11 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex gap-3 items-start ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.role === 'assistant' && (
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                   style={{
                     background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
                   }}
@@ -192,13 +192,13 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
                         }
                   }
                 >
-                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                  <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
                 </div>
               </div>
 
               {msg.role === 'user' && (
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                   style={{
                     background: 'var(--bg-elevated)',
                     border: '1px solid var(--border-subtle)',
@@ -211,9 +211,9 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
           ))}
 
           {loading && (
-            <div className="flex gap-3 justify-start">
+            <div className="flex gap-3 justify-start items-start">
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{
                   background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
                 }}
@@ -221,13 +221,13 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div
-                className="px-4 py-2 rounded-xl"
+                className="px-4 py-2 rounded-xl flex items-center"
                 style={{
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border-subtle)',
                 }}
               >
-                <div className="flex gap-1">
+                <div className="flex gap-1 items-center">
                   <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
                   <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -257,7 +257,7 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
           className="p-4 border-t"
           style={{ borderTopColor: 'var(--border-subtle)' }}
         >
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <input
               ref={inputRef}
               type="text"
@@ -276,7 +276,7 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
             <button
               onClick={handleSend}
               disabled={loading || !connected || !input.trim()}
-              className="p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
                 color: 'white',

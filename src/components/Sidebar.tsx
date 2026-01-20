@@ -114,11 +114,11 @@ export const Sidebar: React.FC = () => {
             >
               <Bot className="w-6 h-6 text-white" />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold truncate" style={{ color: "var(--text)" }}>
+            <div className="min-w-0 flex flex-col justify-center">
+              <h2 className="text-sm font-bold truncate leading-tight" style={{ color: "var(--text)" }}>
                 Justin Lee
               </h2>
-              <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-xs truncate leading-tight" style={{ color: "var(--text-secondary)" }}>
                 AI Assistant
               </p>
             </div>
@@ -169,7 +169,7 @@ export const Sidebar: React.FC = () => {
           </nav>
 
           {/* Theme Toggle */}
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-center items-center">
             <ThemeToggle />
           </div>
 

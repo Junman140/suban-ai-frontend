@@ -63,11 +63,11 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
       {transcripts.map((item, index) => (
         <div
           key={index}
-          className={`flex gap-3 ${item.isUser ? 'justify-end' : 'justify-start'}`}
+          className={`flex gap-3 items-start ${item.isUser ? 'justify-end' : 'justify-start'}`}
         >
           {!item.isUser && (
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
               }}
@@ -100,7 +100,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                     }
               }
             >
-              <p className="whitespace-pre-wrap break-words">{item.text}</p>
+              <p className="whitespace-pre-wrap break-words leading-relaxed">{item.text}</p>
             </div>
             <span
               className="text-xs opacity-50 px-2"
@@ -115,7 +115,7 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
 
           {item.isUser && (
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
               style={{
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--border-subtle)',
