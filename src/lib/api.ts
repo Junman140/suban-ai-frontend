@@ -28,8 +28,26 @@ export interface VoiceSessionResponse {
 }
 
 export const createVoiceSession = async (config: VoiceSessionConfig): Promise<VoiceSessionResponse> => {
-  const response = await api.post('/voice/session', config);
-  return response.data;
+  try {
+    const response = await api.post('/voice/session', config);
+    return response.data;
+  } catch (error: any) {
+    // Re-throw with more context for better error handling
+    if (error.response) {
+      throw {
+        ...error,
+        response: {
+          ...error.response,
+          data: {
+            ...error.response.data,
+            error: error.response.data?.error || error.response.data?.message || 'Voice service error',
+            message: error.response.data?.message || error.response.data?.error,
+          },
+        },
+      };
+    }
+    throw error;
+  }
 };
 
 export const getVoiceSession = async (sessionId: string) => {

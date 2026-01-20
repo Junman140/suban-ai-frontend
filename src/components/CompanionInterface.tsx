@@ -15,6 +15,7 @@ export const CompanionInterface: React.FC = () => {
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('character');
   const [isTextChatOpen, setIsTextChatOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Load visualization preference from localStorage
   useEffect(() => {
@@ -41,7 +42,12 @@ export const CompanionInterface: React.FC = () => {
     onStateChange: (newState) => {
       if (newState === 'listening') {
         setIsListening(true);
-      } else if (newState === 'idle' || newState === 'error') {
+        setErrorMessage(null); // Clear error when successfully listening
+      } else if (newState === 'idle') {
+        setIsListening(false);
+        // Clear error when successfully connected (idle state after connection)
+        setErrorMessage(null);
+      } else if (newState === 'error') {
         setIsListening(false);
       }
     },
@@ -50,6 +56,9 @@ export const CompanionInterface: React.FC = () => {
     },
     onError: (error) => {
       console.error('Voice companion error:', error);
+      setErrorMessage(error);
+      // Clear error message after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000);
     },
   });
 
@@ -58,7 +67,9 @@ export const CompanionInterface: React.FC = () => {
       return;
     }
 
+    // Clear any previous error when attempting to connect
     if (!isConnected) {
+      setErrorMessage(null);
       startSession();
     } else if (isListening) {
       stopListening();
@@ -181,6 +192,21 @@ export const CompanionInterface: React.FC = () => {
             {state === 'speaking' && 'Speaking...'}
             {state === 'error' && 'Error - Try Again'}
           </button>
+        )}
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div
+            className="mb-4 p-4 rounded-2xl text-center max-w-md"
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+            }}
+          >
+            <p className="text-sm font-medium" style={{ color: '#ef4444' }}>
+              {errorMessage}
+            </p>
+          </div>
         )}
 
         {/* Connection Prompt */}
