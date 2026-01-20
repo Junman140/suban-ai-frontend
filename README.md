@@ -347,6 +347,29 @@ frontend/src/
 5. **Session Duration**: Voice sessions limited to 3 minutes
 6. **Placeholder Images**: Replace placeholder character image with your own
 
+## 🎨 Recent UI Improvements
+
+### UI Alignment Fixes (Latest Update)
+- **Consistent Icon Alignment**: All icons now properly centered using flexbox (`flex items-center justify-center`)
+- **Text Alignment**: Fixed text baseline alignment issues across all components
+- **Button Alignment**: Voice control buttons and all interactive elements now have proper icon-text alignment
+- **Header Components**: Token balance, message button, and wallet button are vertically aligned
+- **Message Bubbles**: Avatar icons align with the first line of text in conversation transcripts
+- **Form Elements**: Input fields and buttons are vertically aligned in all forms
+- **Navigation Items**: Sidebar navigation icons and text are consistently spaced and aligned
+- **Error Messages**: User-friendly error display with auto-dismiss functionality
+
+### Error Handling Improvements
+- **Voice Service Errors**: Clear error messages when voice service is not configured (503 errors)
+- **MongoDB Graceful Degradation**: Application continues to function with default values when MongoDB is unavailable
+- **User-Visible Errors**: Error messages displayed in UI with auto-clear functionality
+- **Error Recovery**: Errors automatically clear when user retries or successfully connects
+
+### Backend Resilience
+- **MongoDB Connection Handling**: Graceful fallback to default values when database is unavailable
+- **No Timeouts**: Balance requests return immediately with default values instead of 10-second timeouts
+- **Error Messages**: Clear, actionable error messages for all failure scenarios
+
 ## 🔐 Security Features
 
 - **TWAP Pricing**: Prevents flash pump/dump exploitation
