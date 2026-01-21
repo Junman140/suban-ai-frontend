@@ -16,6 +16,7 @@ export interface UseVoiceCompanionReturn {
   stopListening: () => void;
   isConnected: boolean;
   audioLevel: number;
+  frequencyData: Uint8Array;
 }
 
 export interface UseVoiceCompanionOptions {
@@ -23,35 +24,46 @@ export interface UseVoiceCompanionOptions {
   onTranscript?: (text: string, isUser: boolean) => void;
   onError?: (error: string) => void;
   voice?: 'Ara' | 'Rex' | 'Sal' | 'Eve' | 'Leo';
+  model?: 'grok-4-1-fast-non-reasoning' | 'grok-4-1-fast-reasoning';
+  unhingedMode?: boolean;
 }
 
 export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVoiceCompanionReturn => {
   const { connected, publicKey } = useWallet();
-  const { onStateChange, onTranscript, onError, voice = 'Ara' } = options;
+  const { onStateChange, onTranscript, onError, voice = 'Ara', model = 'grok-4-1-fast-non-reasoning', unhingedMode = false } = options;
   
   const [state, setState] = useState<VoiceState>('idle');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [transcripts, setTranscripts] = useState<Array<{ text: string; isUser: boolean; timestamp: number }>>([]);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [frequencyData, setFrequencyData] = useState<Uint8Array | null>(null);
   const currentAssistantTranscriptRef = useRef<string>('');
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playbackTimeRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const playbackAnalyserRef = useRef<AnalyserNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const activeAudioSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const currentResponseIdRef = useRef<number>(0);
 
   const updateState = useCallback((newState: VoiceState) => {
     setState(newState);
     onStateChange?.(newState);
   }, [onStateChange]);
 
-  // Audio level detection
+  // Audio level and frequency detection
   const detectAudioLevel = useCallback(() => {
-    if (!analyserRef.current) {
+    // Use playback analyser when speaking, input analyser when listening/idle
+    const activeAnalyser = state === 'speaking' && playbackAnalyserRef.current 
+      ? playbackAnalyserRef.current 
+      : analyserRef.current;
+
+    if (!activeAnalyser) {
       return;
     }
 
@@ -60,14 +72,14 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       return;
     }
 
-    const analyser = analyserRef.current;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
+    const dataArray = new Uint8Array(activeAnalyser.frequencyBinCount);
+    activeAnalyser.getByteFrequencyData(dataArray);
 
     const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
     const normalizedLevel = Math.min(average / 255, 1);
     
     setAudioLevel(normalizedLevel);
+    setFrequencyData(new Uint8Array(dataArray));
 
     // Continue animation frame
     animationFrameRef.current = requestAnimationFrame(detectAudioLevel);
@@ -76,15 +88,56 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
   // Initialize audio context and analyser
   const initializeAudio = useCallback(async () => {
     try {
+      // Check if we already have a valid AudioContext
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        // AudioContext already exists and is valid, just ensure we have a stream
+        if (mediaStreamRef.current) {
+          return; // Already initialized
+        }
+      } else {
+        // Reset references when creating a new AudioContext
+        playbackAnalyserRef.current = null;
+        analyserRef.current = null;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      // Prefer a 24kHz AudioContext to match Grok Voice Agent default PCM rate
-      // (helps avoid resampling artifacts / "chipmunk" / "double voice" effects)
-      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
-      const audioContext = new AC({ sampleRate: 24000 } as any);
-      audioContextRef.current = audioContext;
-      playbackTimeRef.current = audioContext.currentTime;
+      // Only create a new AudioContext if we don't have a valid one
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        // Prefer a 24kHz AudioContext to match Grok Voice Agent default PCM rate
+        // (helps avoid resampling artifacts / "chipmunk" / "double voice" effects)
+        const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+        const audioContext = new AC({ sampleRate: 24000 } as any);
+        audioContextRef.current = audioContext;
+        playbackTimeRef.current = audioContext.currentTime;
+        
+        // Reset analyser references when creating new context
+        playbackAnalyserRef.current = null;
+        analyserRef.current = null;
+      }
+
+      const audioContext = audioContextRef.current;
+
+      // Clean up old script processor if it exists
+      const oldProcessor = (mediaRecorderRef as any).current;
+      if (oldProcessor && typeof oldProcessor.disconnect === 'function') {
+        try {
+          oldProcessor.disconnect();
+        } catch (e) {
+          // Already disconnected, ignore
+        }
+        (mediaRecorderRef as any).current = null;
+      }
+
+      // Disconnect old analyser if it exists
+      if (analyserRef.current) {
+        try {
+          analyserRef.current.disconnect();
+        } catch (e) {
+          // Already disconnected, ignore
+        }
+      }
 
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
@@ -140,18 +193,7 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
             const bytes = new Uint8Array(pcm16.buffer);
             const base64Audio = btoa(String.fromCharCode(...bytes));
             
-            // Debug: log first few audio sends
-            if (audioSendCount < 3) {
-              console.log('📤 Sending audio chunk', { 
-                count: audioSendCount + 1, 
-                size: base64Audio.length,
-                sourceRate: sourceSampleRate,
-                targetRate: targetSampleRate,
-                originalLength: inputData.length,
-                resampledLength: resampled.length
-              });
-              audioSendCount++;
-            }
+            audioSendCount++;
             
             // Double-check WebSocket is still open before sending
             if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -161,10 +203,7 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
               }));
             }
           } catch (err: any) {
-            // WebSocket might be closed - silently fail (don't spam console)
-            if (wsRef.current?.readyState === WebSocket.OPEN) {
-              console.warn('⚠️ Failed to send audio chunk:', err.message);
-            }
+            // WebSocket might be closed - silently fail
           }
         }
       };
@@ -192,22 +231,18 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
     }
 
     try {
-      console.log('🚀 Starting voice session...');
       updateState('connecting');
 
       // Initialize audio first
-      console.log('🎤 Initializing audio...');
       await initializeAudio();
-      console.log('✅ Audio initialized');
 
       // Create voice session
-      console.log('📞 Creating voice session...');
       const session = await createVoiceSession({
         walletAddress: publicKey.toString(),
         voice: voice,
-        model: 'grok-4-1-fast-non-reasoning',
+        model: model,
+        unhingedMode: unhingedMode,
       });
-      console.log('✅ Voice session created:', session.sessionId);
 
       setSessionId(session.sessionId);
 
@@ -216,16 +251,10 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
       const wsBaseUrl = apiUrl.replace(/^https?:\/\//, '');
       const wsUrl = `${wsProtocol}://${wsBaseUrl}${session.wsUrl}`;
-      console.log('🔌 Connecting to WebSocket:', wsUrl);
-      console.log('📝 Session ID:', session.sessionId);
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        console.log('✅ WebSocket connected');
-        console.log('🎤 Audio streaming started (server_vad will detect speech automatically)');
-        // With server_vad, audio is already streaming, just wait for speech detection
         updateState('idle');
-        // Start audio level detection for UI feedback
         detectAudioLevel();
       };
 
@@ -238,6 +267,8 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
               // Play received PCM16 audio
               if (data.data && audioContextRef.current) {
                 try {
+                  const responseId = currentResponseIdRef.current;
+                  
                   // Decode base64 PCM16 to Float32Array
                   const binaryString = atob(data.data);
                   const bytes = new Uint8Array(binaryString.length);
@@ -256,17 +287,51 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
                   const audioBuffer = audioContext.createBuffer(1, float32.length, sampleRate);
                   audioBuffer.copyToChannel(float32, 0);
 
+                  // Create analyser for playback audio visualization
+                  // Verify it belongs to the current AudioContext, recreate if needed
+                  if (!playbackAnalyserRef.current || playbackAnalyserRef.current.context !== audioContext) {
+                    // Disconnect old analyser if it exists and belongs to a different context
+                    if (playbackAnalyserRef.current && playbackAnalyserRef.current.context !== audioContext) {
+                      try {
+                        playbackAnalyserRef.current.disconnect();
+                      } catch (e) {
+                        // Already disconnected, ignore
+                      }
+                    }
+                    const playbackAnalyser = audioContext.createAnalyser();
+                    playbackAnalyser.fftSize = 256;
+                    playbackAnalyserRef.current = playbackAnalyser;
+                    // Connect analyser to destination once when created
+                    playbackAnalyserRef.current.connect(audioContext.destination);
+                  }
+
                   const source = audioContext.createBufferSource();
                   source.buffer = audioBuffer;
-                  source.connect(audioContext.destination);
+                  source.connect(playbackAnalyserRef.current);
+
+                  // Track this source and remove when done
+                  activeAudioSourcesRef.current.add(source);
+                  source.onended = () => {
+                    activeAudioSourcesRef.current.delete(source);
+                    // Only update state if this is still the current response
+                    if (responseId === currentResponseIdRef.current && activeAudioSourcesRef.current.size === 0) {
+                      updateState('idle');
+                    }
+                  };
 
                   // Schedule sequential playback
                   const now = audioContext.currentTime;
                   const startAt = Math.max(playbackTimeRef.current, now + 0.02); // small jitter buffer
-                  source.start(startAt);
-                  playbackTimeRef.current = startAt + audioBuffer.duration;
-
-                  updateState('speaking');
+                  
+                  // Only start if this is still the current response
+                  if (responseId === currentResponseIdRef.current) {
+                    source.start(startAt);
+                    playbackTimeRef.current = startAt + audioBuffer.duration;
+                    updateState('speaking');
+                  } else {
+                    // This audio is from an old response, don't play it
+                    activeAudioSourcesRef.current.delete(source);
+                  }
                 } catch (err) {
                   console.error('Error playing audio:', err);
                 }
@@ -309,49 +374,84 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
             case 'user_transcript':
               // User's transcribed audio (from conversation.item.input_audio_transcription.completed)
               if (data.text) {
+                // Cancel any ongoing audio playback when user speaks
+                activeAudioSourcesRef.current.forEach(source => {
+                  try {
+                    source.stop();
+                  } catch (e) {
+                    // Source may already be stopped
+                  }
+                });
+                activeAudioSourcesRef.current.clear();
+                playbackTimeRef.current = audioContextRef.current?.currentTime || 0;
+                
+                // Increment response ID to invalidate old responses
+                currentResponseIdRef.current++;
+                
                 // Reset assistant transcript accumulator when user speaks
                 currentAssistantTranscriptRef.current = '';
-                const transcript = { text: data.text, isUser: true, timestamp: Date.now() };
-                setTranscripts((prev) => [...prev, transcript]);
+                
+                // Remove any incomplete assistant transcripts
+                setTranscripts((prev) => {
+                  const filtered = prev.filter(t => t.isUser || t.text.trim().length > 0);
+                  return [...filtered, { text: data.text, isUser: true, timestamp: Date.now() }];
+                });
                 onTranscript?.(data.text, true);
               }
               break;
 
             case 'speech_started':
-              // Server detected speech start (server_vad)
-              console.log('🎤 Speech detected - server started listening');
               updateState('listening');
               break;
 
             case 'speech_stopped':
-              // Server detected speech end (server_vad)
-              console.log('🔇 Speech ended - server processing');
               updateState('processing');
               break;
 
             case 'response_created':
-              // Grok started generating a response
-              console.log('💬 Grok started responding');
+              // Cancel any ongoing audio playback when new response starts
+              activeAudioSourcesRef.current.forEach(source => {
+                try {
+                  source.stop();
+                } catch (e) {
+                  // Source may already be stopped
+                }
+              });
+              activeAudioSourcesRef.current.clear();
+              playbackTimeRef.current = audioContextRef.current?.currentTime || 0;
+              
+              // Increment response ID to invalidate old responses
+              currentResponseIdRef.current++;
+              
+              // Clear incomplete assistant transcript
+              currentAssistantTranscriptRef.current = '';
+              
+              // Remove any incomplete assistant transcripts
+              setTranscripts((prev) => prev.filter(t => t.isUser || t.text.trim().length > 0));
+              
               updateState('speaking');
               break;
 
             case 'response_done':
-              // Response complete
-              console.log('✅ Grok response completed');
-              // Reset playback timeline so next response doesn't "rush" to catch up
-              if (audioContextRef.current) {
+              // Wait for all audio sources to finish before going to idle
+              // The onended handler will update state when all sources are done
+              if (activeAudioSourcesRef.current.size === 0 && audioContextRef.current) {
                 playbackTimeRef.current = audioContextRef.current.currentTime;
+                updateState('idle');
               }
-              updateState('idle');
-              break;
-
-            case 'connected':
-              console.log('✅ Backend confirmed WebSocket connection');
               break;
 
             case 'error':
-              updateState('error');
-              onError?.(data.message || 'An error occurred');
+              // Don't show "Session disconnected" as an error if it's a clean close
+              const errorMsg = data.message || 'An error occurred';
+              if (errorMsg === 'Session disconnected' && wsRef.current?.readyState === WebSocket.CLOSING) {
+                // Session is already closing, just update state
+                updateState('idle');
+                setSessionId(null);
+              } else {
+                updateState('error');
+                onError?.(errorMsg);
+              }
               break;
           }
         } catch (err) {
@@ -360,17 +460,20 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       };
 
       ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        console.error('WebSocket readyState:', ws.readyState);
-        console.error('WebSocket URL:', wsUrl);
+        console.error('WebSocket error:', error);
         updateState('error');
         onError?.('Connection error. Please try again.');
       };
 
       ws.onclose = (event) => {
-        console.log('🔌 WebSocket closed:', { code: event.code, reason: event.reason, wasClean: event.wasClean });
-        // Only update state if this wasn't an intentional close
-        if (event.code !== 1000) {
+        // Code 1000 = normal closure, 1001 = going away (server-initiated but expected)
+        // Only treat unexpected closes as errors
+        if (event.code !== 1000 && event.code !== 1001) {
+          updateState('error');
+          onError?.('Connection lost. Please reconnect.');
+          setSessionId(null);
+        } else {
+          // Expected close - reset to idle
           updateState('idle');
           setSessionId(null);
         }
@@ -393,7 +496,7 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
         onError?.(errorMessage);
       }
     }
-  }, [connected, publicKey, initializeAudio, updateState, onError, onTranscript, state]);
+  }, [connected, publicKey, initializeAudio, updateState, onError, onTranscript, state, voice, model, unhingedMode]);
 
   // Start/stop listening (with server_vad, these are mostly for UI state)
   const startListening = useCallback(() => {
@@ -414,11 +517,6 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
 
   // Close session and cleanup
   const closeSession = useCallback(async () => {
-    console.log('🔌 Closing voice session...');
-    
-    // Set a flag to prevent audio from being sent during cleanup
-    const isClosingRef = { current: true };
-    
     // Stop audio stream first (stops sending new audio)
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
@@ -451,7 +549,6 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
     if (currentSessionId && publicKey) {
       try {
         await closeVoiceSession(currentSessionId, publicKey.toString());
-        console.log('✅ Voice session closed');
       } catch (err) {
         console.error('Error closing voice session:', err);
       }
@@ -467,11 +564,26 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       audioContextRef.current = null;
     }
 
+    // Reset analyser references
+    playbackAnalyserRef.current = null;
+    analyserRef.current = null;
+
+    // Stop all active audio sources
+    activeAudioSourcesRef.current.forEach(source => {
+      try {
+        source.stop();
+      } catch (e) {
+        // Source may already be stopped
+      }
+    });
+    activeAudioSourcesRef.current.clear();
+    
     // Reset state
     setSessionId(null);
     updateState('idle');
     setTranscripts([]);
     currentAssistantTranscriptRef.current = '';
+    currentResponseIdRef.current = 0;
     
     // Stop animation frame
     if (animationFrameRef.current) {
@@ -483,7 +595,6 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
   // Cleanup on unmount only
   useEffect(() => {
     return () => {
-      console.log('🧹 Cleaning up voice companion (unmount)...');
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -507,13 +618,11 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
         }
       }
       if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-        console.log('🔌 Closing WebSocket on unmount');
         wsRef.current.close();
       }
       // Close session on unmount
       const currentSessionId = sessionId;
       if (currentSessionId && publicKey) {
-        console.log('🗑️ Closing voice session on unmount:', currentSessionId);
         closeVoiceSession(currentSessionId, publicKey.toString()).catch(console.error);
       }
     };
@@ -531,5 +640,6 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
     stopListening,
     isConnected: wsRef.current?.readyState === WebSocket.OPEN,
     audioLevel,
+    frequencyData: frequencyData || new Uint8Array(0),
   };
 };

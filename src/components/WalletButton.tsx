@@ -25,81 +25,83 @@ export const WalletButton: React.FC = () => {
     styleSheet.id = 'wallet-adapter-styles';
     styleSheet.textContent = `
       .wallet-adapter-button {
-        background: var(--glass-bg) !important;
-        backdrop-filter: blur(var(--blur-md)) !important;
-        -webkit-backdrop-filter: blur(var(--blur-md)) !important;
-        border: 1px solid var(--glass-border) !important;
-        color: var(--text) !important;
-        border-radius: var(--radius-xl) !important;
-        padding: var(--space-3) var(--space-4) !important;
-        font-size: var(--font-sm) !important;
-        font-weight: 500 !important;
-        min-height: 44px !important;
-        transition: all var(--transition-base) !important;
-        box-shadow: var(--shadow-sm) !important;
+        background: #FFFFFF !important;
+        border: none !important;
+        color: #000000 !important;
+        border-radius: 9999px !important;
+        padding: 0.5rem 0.875rem !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 0.8125rem !important;
+        font-weight: 400 !important;
+        min-height: auto !important;
+        height: auto !important;
+        transition: all 200ms !important;
+        text-transform: none !important;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1) !important;
       }
       .wallet-adapter-button:hover:not([disabled]) {
-        background: var(--bg-hover) !important;
+        background: #F5F5F5 !important;
+        color: #000000 !important;
         transform: translateY(-1px) !important;
-        box-shadow: var(--shadow-md) !important;
         opacity: 1 !important;
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15) !important;
       }
       .wallet-adapter-button:active:not([disabled]) {
         transform: translateY(0) !important;
       }
       .wallet-adapter-button[disabled] {
-        opacity: 0.5 !important;
+        opacity: 0.4 !important;
         cursor: not-allowed !important;
       }
       .wallet-adapter-modal-wrapper {
-        background: rgba(0, 0, 0, 0.5) !important;
-        backdrop-filter: blur(8px) !important;
-        -webkit-backdrop-filter: blur(8px) !important;
+        background: rgba(0, 0, 0, 0.2) !important;
       }
       .wallet-adapter-modal {
-        background: var(--glass-bg) !important;
-        backdrop-filter: blur(var(--blur-xl)) !important;
-        -webkit-backdrop-filter: blur(var(--blur-xl)) !important;
-        border: 1px solid var(--glass-border) !important;
-        border-radius: var(--radius-2xl) !important;
-        box-shadow: var(--shadow-xl) !important;
-        color: var(--text) !important;
-        padding: var(--space-6) !important;
+        background: #FFFFFF !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        color: #000000 !important;
+        padding: 2rem !important;
+        font-family: 'Times New Roman', Times, serif !important;
       }
       .wallet-adapter-modal-title {
-        color: var(--text) !important;
-        font-weight: 600 !important;
-        font-size: var(--font-lg) !important;
-        margin-bottom: var(--space-4) !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-weight: 400 !important;
+        font-size: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
       }
       .wallet-adapter-modal-list {
         display: flex !important;
         flex-direction: column !important;
-        gap: var(--space-2) !important;
+        gap: 0.5rem !important;
       }
       .wallet-adapter-modal-list-item {
-        background: transparent !important;
-        border: 1px solid var(--border-subtle) !important;
-        border-radius: var(--radius-xl) !important;
-        padding: var(--space-4) !important;
-        transition: all var(--transition-base) !important;
-        color: var(--text) !important;
+        background: #FFFFFF !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border-radius: 0.75rem !important;
+        padding: 1rem !important;
+        transition: all 200ms !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, serif !important;
       }
       .wallet-adapter-modal-list-item:hover {
-        background: var(--bg-hover) !important;
-        border-color: var(--border-medium) !important;
+        background: #F5F5F5 !important;
+        color: #000000 !important;
         transform: translateY(-1px) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
       }
       .wallet-adapter-modal-button-close {
-        background: transparent !important;
-        border: 1px solid var(--border-subtle) !important;
-        border-radius: var(--radius-lg) !important;
-        color: var(--text) !important;
-        transition: all var(--transition-base) !important;
+        background: #FFFFFF !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border-radius: 0.5rem !important;
+        color: #000000 !important;
+        transition: all 200ms !important;
       }
       .wallet-adapter-modal-button-close:hover {
-        background: var(--bg-hover) !important;
-        border-color: var(--border-medium) !important;
+        background: #F5F5F5 !important;
+        color: #000000 !important;
       }
     `;
     
@@ -131,17 +133,16 @@ export const WalletButton: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-stretch gap-2 w-full">
-      <div className="wallet-button-wrapper w-full flex items-center">
-        <WalletMultiButton className="!w-full !justify-center" />
+    <div className="flex flex-col items-stretch gap-1.5 w-auto">
+      <div className="wallet-button-wrapper flex items-center">
+        <WalletMultiButton className="!w-auto !justify-center" />
       </div>
       {connected && publicKey && getNetworkName() && (
         <div 
-          className="text-xs px-3 py-1.5 rounded-lg text-center flex items-center justify-center"
+          className="text-xs px-2 py-1 text-center flex items-center justify-center rounded-lg border border-white/10 bg-white/5"
           style={{
-            background: "var(--bg-elevated)",
-            border: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)",
+            color: "#FFFFFF",
+            fontFamily: "'Times New Roman', Times, serif",
           }}
         >
           {getNetworkName()}

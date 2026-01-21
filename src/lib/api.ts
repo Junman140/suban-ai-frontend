@@ -17,6 +17,7 @@ export interface VoiceSessionConfig {
   model?: string;
   systemInstructions?: string;
   temperature?: number;
+  unhingedMode?: boolean;
 }
 
 export interface VoiceSessionResponse {

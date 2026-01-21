@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Bot, User } from 'lucide-react';
 
 interface TranscriptItem {
   text: string;
@@ -28,83 +27,50 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
   }, [transcripts]);
 
   if (transcripts.length === 0) {
-    return (
-      <div
-        className={`flex flex-col items-center justify-center py-12 px-4 ${className}`}
-        style={{
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(var(--blur-lg))',
-          WebkitBackdropFilter: 'blur(var(--blur-lg))',
-          border: '1px solid var(--glass-border)',
-          borderRadius: 'var(--radius-2xl)',
-        }}
-      >
-        <Bot className="w-8 h-8 mb-3 opacity-50" style={{ color: 'var(--accent-primary)' }} />
-        <p className="text-sm opacity-60 text-center" style={{ color: 'var(--text-secondary)' }}>
-          Your conversation will appear here
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (
     <div
       ref={scrollRef}
-      className={`flex flex-col gap-3 overflow-y-auto max-h-96 ${className}`}
-      style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--blur-lg))',
-        WebkitBackdropFilter: 'blur(var(--blur-lg))',
-        border: '1px solid var(--glass-border)',
-        borderRadius: 'var(--radius-2xl)',
-        padding: 'var(--space-4)',
-      }}
+      className={`flex-1 flex flex-col gap-8 overflow-y-auto p-6 lg:p-8 ${className}`}
     >
       {transcripts.map((item, index) => (
         <div
           key={index}
-          className={`flex gap-3 items-start ${item.isUser ? 'justify-end' : 'justify-start'}`}
+          className={`flex flex-col ${item.isUser ? 'items-end' : 'items-start'}`}
         >
-          {!item.isUser && (
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{
-                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-              }}
+          {/* Label */}
+          <div className="mb-2 px-1">
+            <span
+              className="text-xs font-normal uppercase tracking-wide text-white text-opacity-50"
+              style={{ fontFamily: "'Times New Roman', Times, serif" }}
             >
-              <Bot className="w-4 h-4 text-white" />
-            </div>
-          )}
+              {item.isUser ? 'You' : 'Likable AI'}
+            </span>
+          </div>
 
+          {/* Message */}
           <div
-            className={`flex flex-col gap-1 max-w-[80%] ${
-              item.isUser ? 'items-end' : 'items-start'
+            className={`max-w-[85%] lg:max-w-[75%] px-5 py-3.5 rounded-2xl ${
+              item.isUser
+                ? 'bg-white text-black'
+                : 'bg-white/5 text-white'
             }`}
           >
-            <div
-              className={`px-4 py-2 rounded-xl text-sm ${
-                item.isUser
-                  ? 'rounded-br-sm'
-                  : 'rounded-bl-sm'
-              }`}
-              style={
-                item.isUser
-                  ? {
-                      background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                      color: 'white',
-                    }
-                  : {
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--text)',
-                      border: '1px solid var(--border-subtle)',
-                    }
-              }
+            <p
+              className="text-base leading-relaxed whitespace-pre-wrap break-words"
+              style={{ fontFamily: "'Times New Roman', Times, serif" }}
             >
-              <p className="whitespace-pre-wrap break-words leading-relaxed">{item.text}</p>
-            </div>
+              {item.text}
+            </p>
+          </div>
+
+          {/* Timestamp */}
+          <div className="mt-1 px-1">
             <span
-              className="text-xs opacity-50 px-2"
-              style={{ color: 'var(--text-secondary)' }}
+              className="text-xs text-white text-opacity-50"
+              style={{ fontFamily: "'Times New Roman', Times, serif" }}
             >
               {new Date(item.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
@@ -112,18 +78,6 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
               })}
             </span>
           </div>
-
-          {item.isUser && (
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <User className="w-4 h-4" style={{ color: 'var(--text)' }} />
-            </div>
-          )}
         </div>
       ))}
     </div>

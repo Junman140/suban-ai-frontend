@@ -25,8 +25,12 @@ export const TokenBalance: React.FC = () => {
     try {
       const data = await getTokenBalance(publicKey.toString());
       setBalance(data);
-    } catch (error) {
-      console.error('Failed to fetch balance:', error);
+    } catch (error: any) {
+      // Silently handle network errors - don't spam console
+      if (error?.code !== 'ERR_NETWORK' && error?.message !== 'Network Error') {
+        console.error('Failed to fetch balance:', error);
+      }
+      // Keep previous balance on network errors
     } finally {
       setLoading(false);
     }
@@ -36,8 +40,12 @@ export const TokenBalance: React.FC = () => {
     try {
       const data = await getTokenPrice();
       setTokenPrice(data.twapPrice);
-    } catch (error) {
-      console.error('Failed to fetch price:', error);
+    } catch (error: any) {
+      // Silently handle network errors - don't spam console
+      if (error?.code !== 'ERR_NETWORK' && error?.message !== 'Network Error') {
+        console.error('Failed to fetch price:', error);
+      }
+      // Keep previous price on network errors
     }
   }, []);
 
@@ -63,33 +71,26 @@ export const TokenBalance: React.FC = () => {
 
   return (
     <div 
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200"
-      style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--blur-md))',
-        WebkitBackdropFilter: 'blur(var(--blur-md))',
-        border: '1px solid var(--glass-border)',
-      }}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 border border-white/10 bg-white/5 text-white rounded-lg transition-all duration-200"
     >
-      <Wallet className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
+      <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
       <div className="flex items-center gap-1">
-        <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+        <span className="text-xs font-normal" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           {balance.currentBalance.toFixed(2)}
         </span>
-        <span className="text-xs opacity-60" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-xs text-white text-opacity-60" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           tokens
         </span>
       </div>
       {usdValue > 0 && (
-        <span className="text-xs opacity-60" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-xs text-white text-opacity-60" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           (${usdValue.toFixed(2)})
         </span>
       )}
       <button
         onClick={fetchBalance}
         disabled={loading}
-        className="p-1 rounded disabled:opacity-50 transition-all flex items-center justify-center ml-1"
-        style={{ color: 'var(--text-secondary)' }}
+        className="p-0.5 disabled:opacity-40 transition-all flex items-center justify-center ml-0.5 hover:bg-white hover:bg-opacity-10 rounded"
         aria-label="Refresh balance"
       >
         <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />

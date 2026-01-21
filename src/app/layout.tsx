@@ -11,10 +11,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Justin Lee AI - Market Analysis & Scenario Planning",
-  description: "Your personal AI analyst for chart scenarios, emotional processing, and risk management. Powered by Solana blockchain.",
-  keywords: ["AI", "market analysis", "trading", "risk management", "Solana", "crypto"],
-  authors: [{ name: "Justin Lee AI" }],
+  title: "Likable AI - Voice Companion & Market Analysis",
+  description: "Your personal AI companion for voice conversations, chart scenarios, emotional processing, and risk management. Powered by Solana blockchain.",
+  keywords: ["AI", "voice assistant", "market analysis", "trading", "risk management", "Solana", "crypto"],
+  authors: [{ name: "Likable AI" }],
   viewport: {
     width: "device-width",
     initialScale: 1,
@@ -29,20 +29,20 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Justin Lee AI",
+    title: "Likable AI",
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: "website",
-    title: "Justin Lee AI",
-    description: "Your personal AI analyst for market analysis and scenario planning",
+    title: "Likable AI",
+    description: "Your personal AI companion for voice conversations and market analysis",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Justin Lee AI",
-    description: "Your personal AI analyst for market analysis and scenario planning",
+    title: "Likable AI",
+    description: "Your personal AI companion for voice conversations and market analysis",
   },
 };
 
@@ -58,7 +58,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Justin Lee AI" />
+        <meta name="apple-mobile-web-app-title" content="Likable AI" />
         <meta name="format-detection" content="telephone=no" />
       </head>
       <body

@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { sendChatMessage, ChatMessageRequest } from '@/lib/api';
-import { X, Send, MessageSquare } from 'lucide-react';
-import { Bot, User } from 'lucide-react';
+import { X, Send, Loader2 } from 'lucide-react';
+import { SkeletonLoader } from './SkeletonLoader';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -53,7 +53,6 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
     setError(null);
 
     try {
-      // Build conversation history (last 4 turns)
       const conversationHistory = messages
         .slice(-4)
         .map((msg) => ({
@@ -64,7 +63,7 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
       const request: ChatMessageRequest = {
         message: userMessage.content,
         walletAddress: publicKey.toString(),
-        userTier: 'free', // Can be made configurable
+        userTier: 'free',
         conversationHistory,
       };
 
@@ -84,7 +83,7 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
       const errorMessage: Message = {
         role: 'assistant',
         content: err.response?.status === 402
-          ? '⚠️ Insufficient tokens. Please deposit more tokens to continue.'
+          ? 'Insufficient tokens. Please deposit more tokens to continue.'
           : 'Error: Could not reach the AI. Please try again.',
         timestamp: Date.now(),
       };
@@ -106,37 +105,25 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
           onClick={onClose}
-          style={{ opacity: isOpen ? 1 : 0 }}
         />
       )}
 
       {/* Drawer */}
       <div
-        className={`fixed right-0 top-0 h-full w-full md:w-96 z-50 transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 h-full w-full md:w-[480px] z-50 bg-black border-l border-white/10 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        style={{
-          background: 'var(--bg)',
-          boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.1)',
-        }}
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between p-4 border-b"
-          style={{ borderBottomColor: 'var(--border-subtle)' }}
-        >
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
-            <h2 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
-              Text Chat
-            </h2>
-          </div>
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
+          <h2 className="text-xl font-normal text-white" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+            Text Chat
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-hover transition-colors flex items-center justify-center"
-            style={{ color: 'var(--text-secondary)' }}
+            className="p-1.5 hover:bg-white hover:bg-opacity-10 rounded transition-colors text-white"
             aria-label="Close chat"
           >
             <X className="w-5 h-5" />
@@ -144,12 +131,11 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ height: 'calc(100% - 160px)' }}>
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Bot className="w-12 h-12 mb-4 opacity-30" style={{ color: 'var(--accent-primary)' }} />
-              <p className="text-sm opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                Start a conversation
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-sm text-white text-opacity-60" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+                Begin a conversation with Likable AI
               </p>
             </div>
           )}
@@ -157,94 +143,42 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex gap-3 items-start ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
             >
-              {msg.role === 'assistant' && (
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                  }}
-                >
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-              )}
-
               <div
-                className={`flex flex-col gap-1 max-w-[80%] ${
-                  msg.role === 'user' ? 'items-end' : 'items-start'
+                className={`max-w-[80%] px-4 py-2.5 rounded-2xl ${
+                  msg.role === 'user'
+                    ? 'bg-white text-black'
+                    : 'bg-white/5 text-white'
                 }`}
+                style={{ fontFamily: "'Times New Roman', Times, serif" }}
               >
-                <div
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    msg.role === 'user' ? 'rounded-br-sm' : 'rounded-bl-sm'
-                  }`}
-                  style={
-                    msg.role === 'user'
-                      ? {
-                          background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                          color: 'white',
-                        }
-                      : {
-                          background: 'var(--bg-elevated)',
-                          color: 'var(--text)',
-                          border: '1px solid var(--border-subtle)',
-                        }
-                  }
-                >
-                  <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
-                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  {msg.content}
+                </p>
               </div>
-
-              {msg.role === 'user' && (
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <User className="w-4 h-4" style={{ color: 'var(--text)' }} />
-                </div>
-              )}
+              <span
+                className="text-xs text-white text-opacity-50 mt-1 px-1"
+                style={{ fontFamily: "'Times New Roman', Times, serif" }}
+              >
+                {new Date(msg.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
             </div>
           ))}
 
           {loading && (
-            <div className="flex gap-3 justify-start items-start">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{
-                  background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                }}
-              >
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div
-                className="px-4 py-2 rounded-xl flex items-center"
-                style={{
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div className="flex gap-1 items-center">
-                  <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
+            <div className="flex items-start">
+              <div className="px-4 py-2.5 rounded-2xl bg-white/5">
+                <SkeletonLoader lines={2} />
               </div>
             </div>
           )}
 
           {error && (
-            <div
-              className="p-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-strong)',
-                color: 'var(--text)',
-              }}
-            >
+            <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/30 text-sm text-red-300" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
               {error}
             </div>
           )}
@@ -253,37 +187,31 @@ export const TextChatDrawer: React.FC<TextChatDrawerProps> = ({ isOpen, onClose 
         </div>
 
         {/* Input */}
-        <div
-          className="p-4 border-t"
-          style={{ borderTopColor: 'var(--border-subtle)' }}
-        >
-          <div className="flex gap-2 items-center">
+        <div className="border-t border-white/5 p-4">
+          <div className="flex gap-2">
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={connected ? "Type a message..." : "Connect wallet to chat..."}
+              placeholder={connected ? "Type your message..." : "Connect wallet to chat..."}
               disabled={loading || !connected}
-              className="flex-1 px-4 py-2 rounded-xl text-sm focus:outline-none disabled:opacity-50"
-              style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text)',
-              }}
+              className="flex-1 px-4 py-2.5 bg-white/5 text-white border border-white/10 rounded-full focus:outline-none focus:ring-1 focus:ring-white/20 disabled:opacity-40 placeholder-white placeholder-opacity-50"
+              style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: '0.875rem' }}
             />
             <button
               onClick={handleSend}
               disabled={loading || !connected || !input.trim()}
-              className="p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                color: 'white',
-              }}
+              className="px-4 py-2.5 bg-white text-black rounded-full hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+              style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: '0.875rem', boxShadow: '0 2px 8px rgba(255, 255, 255, 0.1)' }}
               aria-label="Send message"
             >
-              <Send className="w-5 h-5" />
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>

@@ -17,40 +17,32 @@ export const VisualizationToggle: React.FC<VisualizationToggleProps> = ({
   className = '',
 }) => {
   return (
-    <div
-      className={`flex items-center gap-2 p-1 rounded-xl ${className}`}
-      style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--blur-md))',
-        WebkitBackdropFilter: 'blur(var(--blur-md))',
-        border: '1px solid var(--glass-border)',
-      }}
-    >
+    <div className={`flex items-center gap-3 ${className}`}>
       <button
         onClick={() => onChange('character')}
-        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
-          mode === 'character' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+        className={`flex-1 p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 shadow-md ${
+          mode === 'character'
+            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-lg shadow-emerald-500/20 scale-[1.02]'
+            : 'bg-neutral-800/60 text-neutral-400 border-neutral-700/60 hover:bg-neutral-800 hover:border-neutral-600/80 hover:shadow-lg active:scale-[0.98]'
         }`}
-        style={{
-          background: mode === 'character' ? 'var(--bg-hover)' : 'transparent',
-          color: 'var(--text)',
-        }}
         aria-label="Character mode"
+        aria-pressed={mode === 'character'}
       >
-        <User className="w-4 h-4" />
+        <User className={`w-5 h-5 ${mode === 'character' ? 'text-emerald-300' : 'text-neutral-400'}`} />
+        <span className="text-sm font-semibold">Character</span>
       </button>
       <button
         onClick={() => onChange('waves')}
-        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
-          mode === 'waves' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+        className={`flex-1 p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 shadow-md ${
+          mode === 'waves'
+            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-lg shadow-emerald-500/20 scale-[1.02]'
+            : 'bg-neutral-800/60 text-neutral-400 border-neutral-700/60 hover:bg-neutral-800 hover:border-neutral-600/80 hover:shadow-lg active:scale-[0.98]'
         }`}
-        style={{
-          background: mode === 'waves' ? 'var(--bg-hover)' : 'transparent',
-          color: 'var(--text)',
-        }}
         aria-label="Waves mode"
+        aria-pressed={mode === 'waves'}
       >
-        <Waves className="w-4 h-4" />
+        <Waves className={`w-5 h-5 ${mode === 'waves' ? 'text-emerald-300' : 'text-neutral-400'}`} />
+        <span className="text-sm font-semibold">Waves</span>
       </button>
     </div>
   );
