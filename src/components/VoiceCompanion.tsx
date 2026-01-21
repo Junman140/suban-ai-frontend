@@ -106,55 +106,66 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       let audioSendCount = 0;
       scriptProcessor.onaudioprocess = (event) => {
         // Always send audio when WebSocket is open (server_vad handles speech detection)
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          const inputData = event.inputBuffer.getChannelData(0);
-          
-          // Resample from source rate to 24kHz (only if needed)
-          const resampled =
-            sourceSampleRate === targetSampleRate
-              ? inputData
-              : (() => {
-                  const resampledLength = Math.floor(inputData.length * resampleRatio);
-                  const out = new Float32Array(resampledLength);
-                  // Simple linear interpolation resampling (good enough for speech)
-                  for (let i = 0; i < resampledLength; i++) {
-                    const srcIndex = i / resampleRatio;
-                    const srcIndexFloor = Math.floor(srcIndex);
-                    const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1);
-                    const t = srcIndex - srcIndexFloor;
-                    out[i] = inputData[srcIndexFloor] * (1 - t) + inputData[srcIndexCeil] * t;
-                  }
-                  return out;
-                })();
-          
-          // Convert Float32Array to Int16Array (PCM16)
-          const pcm16 = new Int16Array(resampled.length);
-          for (let i = 0; i < resampled.length; i++) {
-            const s = Math.max(-1, Math.min(1, resampled[i]));
-            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        // Check WebSocket state before processing to avoid errors
+        if (wsRef.current?.readyState === WebSocket.OPEN && mediaStreamRef.current) {
+          try {
+            const inputData = event.inputBuffer.getChannelData(0);
+            
+            // Resample from source rate to 24kHz (only if needed)
+            const resampled =
+              sourceSampleRate === targetSampleRate
+                ? inputData
+                : (() => {
+                    const resampledLength = Math.floor(inputData.length * resampleRatio);
+                    const out = new Float32Array(resampledLength);
+                    // Simple linear interpolation resampling (good enough for speech)
+                    for (let i = 0; i < resampledLength; i++) {
+                      const srcIndex = i / resampleRatio;
+                      const srcIndexFloor = Math.floor(srcIndex);
+                      const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1);
+                      const t = srcIndex - srcIndexFloor;
+                      out[i] = inputData[srcIndexFloor] * (1 - t) + inputData[srcIndexCeil] * t;
+                    }
+                    return out;
+                  })();
+            
+            // Convert Float32Array to Int16Array (PCM16)
+            const pcm16 = new Int16Array(resampled.length);
+            for (let i = 0; i < resampled.length; i++) {
+              const s = Math.max(-1, Math.min(1, resampled[i]));
+              pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            
+            // Convert to base64
+            const bytes = new Uint8Array(pcm16.buffer);
+            const base64Audio = btoa(String.fromCharCode(...bytes));
+            
+            // Debug: log first few audio sends
+            if (audioSendCount < 3) {
+              console.log('📤 Sending audio chunk', { 
+                count: audioSendCount + 1, 
+                size: base64Audio.length,
+                sourceRate: sourceSampleRate,
+                targetRate: targetSampleRate,
+                originalLength: inputData.length,
+                resampledLength: resampled.length
+              });
+              audioSendCount++;
+            }
+            
+            // Double-check WebSocket is still open before sending
+            if (wsRef.current?.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({
+                type: 'audio',
+                data: base64Audio,
+              }));
+            }
+          } catch (err: any) {
+            // WebSocket might be closed - silently fail (don't spam console)
+            if (wsRef.current?.readyState === WebSocket.OPEN) {
+              console.warn('⚠️ Failed to send audio chunk:', err.message);
+            }
           }
-          
-          // Convert to base64
-          const bytes = new Uint8Array(pcm16.buffer);
-          const base64Audio = btoa(String.fromCharCode(...bytes));
-          
-          // Debug: log first few audio sends
-          if (audioSendCount < 3) {
-            console.log('📤 Sending audio chunk', { 
-              count: audioSendCount + 1, 
-              size: base64Audio.length,
-              sourceRate: sourceSampleRate,
-              targetRate: targetSampleRate,
-              originalLength: inputData.length,
-              resampledLength: resampled.length
-            });
-            audioSendCount++;
-          }
-          
-          wsRef.current.send(JSON.stringify({
-            type: 'audio',
-            data: base64Audio,
-          }));
         }
       };
       source.connect(scriptProcessor);
@@ -358,8 +369,11 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
 
       ws.onclose = (event) => {
         console.log('🔌 WebSocket closed:', { code: event.code, reason: event.reason, wasClean: event.wasClean });
-        updateState('idle');
-        setSessionId(null);
+        // Only update state if this wasn't an intentional close
+        if (event.code !== 1000) {
+          updateState('idle');
+          setSessionId(null);
+        }
       };
 
       wsRef.current = ws;
@@ -402,29 +416,16 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
   const closeSession = useCallback(async () => {
     console.log('🔌 Closing voice session...');
     
-    // Close WebSocket
-    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-
-    // Stop audio stream
+    // Set a flag to prevent audio from being sent during cleanup
+    const isClosingRef = { current: true };
+    
+    // Stop audio stream first (stops sending new audio)
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
     }
 
-    // Close audio context
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      try {
-        await audioContextRef.current.close();
-      } catch (err) {
-        console.error('Error closing audio context:', err);
-      }
-      audioContextRef.current = null;
-    }
-
-    // Disconnect script processor
+    // Disconnect script processor (stops audio processing)
     const processor = (mediaRecorderRef as any).current;
     if (processor && typeof processor.disconnect === 'function') {
       try {
@@ -433,6 +434,16 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
         // Ignore errors
       }
       (mediaRecorderRef as any).current = null;
+    }
+
+    // Close WebSocket (with proper close code)
+    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+      try {
+        wsRef.current.close(1000, 'User disconnected');
+      } catch (err) {
+        console.error('Error closing WebSocket:', err);
+      }
+      wsRef.current = null;
     }
 
     // Close backend session
@@ -446,11 +457,27 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       }
     }
 
+    // Close audio context (after stopping streams)
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      try {
+        await audioContextRef.current.close();
+      } catch (err) {
+        console.error('Error closing audio context:', err);
+      }
+      audioContextRef.current = null;
+    }
+
     // Reset state
     setSessionId(null);
     updateState('idle');
     setTranscripts([]);
     currentAssistantTranscriptRef.current = '';
+    
+    // Stop animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
   }, [sessionId, publicKey, updateState]);
 
   // Cleanup on unmount only
