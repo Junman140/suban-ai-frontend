@@ -55,8 +55,12 @@ export const getVoiceSession = async (sessionId: string) => {
   return response.data;
 };
 
-export const closeVoiceSession = async (sessionId: string) => {
-  const response = await api.delete(`/voice/session/${sessionId}`);
+export const closeVoiceSession = async (sessionId: string, walletAddress?: string) => {
+  const config: any = {};
+  if (walletAddress) {
+    config.data = { walletAddress };
+  }
+  const response = await api.delete(`/voice/session/${sessionId}`, config);
   return response.data;
 };
 

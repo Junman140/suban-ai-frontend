@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useVoiceCompanion } from './VoiceCompanion';
-import { VoiceVisualization, VisualizationMode } from './VoiceVisualization';
+import { VoiceVisualization } from './VoiceVisualization';
+import { VisualizationMode } from '@/types/voice';
 import { ConversationTranscript } from './ConversationTranscript';
 import { TextChatDrawer } from './TextChatDrawer';
 import { TokenBalance } from './TokenBalance';
 import { WalletButton } from './WalletButton';
 import { MessageSquare, Mic, Square, Settings } from 'lucide-react';
+import { VoiceSelector, VoiceOption } from './VoiceSelector';
 
 export const CompanionInterface: React.FC = () => {
   const { connected, publicKey } = useWallet();
@@ -16,6 +18,7 @@ export const CompanionInterface: React.FC = () => {
   const [isTextChatOpen, setIsTextChatOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<VoiceOption>('Ara');
 
   // Load visualization preference from localStorage
   useEffect(() => {
@@ -30,15 +33,30 @@ export const CompanionInterface: React.FC = () => {
     localStorage.setItem('visualizationMode', visualizationMode);
   }, [visualizationMode]);
 
+  // Load voice preference from localStorage
+  useEffect(() => {
+    const savedVoice = localStorage.getItem('selectedVoice') as VoiceOption;
+    if (savedVoice && ['Ara', 'Rex', 'Sal', 'Eve', 'Leo'].includes(savedVoice)) {
+      setSelectedVoice(savedVoice);
+    }
+  }, []);
+
+  // Save voice preference
+  useEffect(() => {
+    localStorage.setItem('selectedVoice', selectedVoice);
+  }, [selectedVoice]);
+
   const {
     state,
     transcripts,
     startSession,
+    closeSession,
     startListening,
     stopListening,
     isConnected,
     audioLevel,
   } = useVoiceCompanion({
+    voice: selectedVoice,
     onStateChange: (newState) => {
       if (newState === 'listening') {
         setIsListening(true);
@@ -62,7 +80,7 @@ export const CompanionInterface: React.FC = () => {
     },
   });
 
-  const handleVoiceToggle = () => {
+  const handleVoiceToggle = async () => {
     if (!connected || !publicKey) {
       return;
     }
@@ -70,10 +88,19 @@ export const CompanionInterface: React.FC = () => {
     // Clear any previous error when attempting to connect
     if (!isConnected) {
       setErrorMessage(null);
-      startSession();
+      console.log('🔵 Starting voice session...');
+      try {
+        await startSession();
+        console.log('✅ Voice session started');
+      } catch (error: any) {
+        console.error('❌ Failed to start session:', error);
+        setErrorMessage(error?.message || 'Failed to start voice session');
+      }
     } else if (isListening) {
       stopListening();
     } else {
+      // With server_vad, audio is already streaming - just log for debugging
+      console.log('🎤 Audio is already streaming (server_vad active)');
       startListening();
     }
   };
@@ -114,6 +141,14 @@ export const CompanionInterface: React.FC = () => {
 
         <div className="flex items-center gap-3">
           {connected && <TokenBalance />}
+          {connected && (
+            <VoiceSelector
+              selectedVoice={selectedVoice}
+              onVoiceChange={setSelectedVoice}
+              disabled={isConnected}
+              className="hidden md:flex"
+            />
+          )}
           <button
             onClick={() => setIsTextChatOpen(true)}
             className="p-2 rounded-lg hover:bg-hover transition-colors flex items-center justify-center"
@@ -139,59 +174,90 @@ export const CompanionInterface: React.FC = () => {
           />
         </div>
 
-        {/* Voice Control Button */}
+        {/* Voice Selector (when not connected) */}
+        {connected && publicKey && !isConnected && (
+          <div className="mb-6 w-full max-w-md">
+            <VoiceSelector
+              selectedVoice={selectedVoice}
+              onVoiceChange={setSelectedVoice}
+              disabled={false}
+            />
+          </div>
+        )}
+
+        {/* Voice Control Buttons */}
         {connected && publicKey && (
-          <button
-            onClick={handleVoiceToggle}
-            disabled={state === 'connecting' || state === 'error'}
-            className={`mb-8 px-8 py-4 rounded-2xl font-medium text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-              isListening ? 'animate-pulse' : ''
-            }`}
-            style={
-              isListening
-                ? {
-                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                    color: 'white',
-                    boxShadow: '0 0 30px rgba(239, 68, 68, 0.5)',
-                  }
-                : isConnected
-                ? {
-                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                    color: 'white',
-                    boxShadow: 'var(--shadow-lg)',
-                  }
-                : {
-                    background: 'var(--glass-bg)',
-                    backdropFilter: 'blur(var(--blur-md))',
-                    WebkitBackdropFilter: 'blur(var(--blur-md))',
-                    border: '1px solid var(--glass-border)',
-                    color: 'var(--text)',
-                  }
-            }
-          >
-            {state === 'connecting' && 'Connecting...'}
-            {state === 'idle' && isConnected && (
-              <>
-                <Mic className="w-5 h-5" />
-                <span>Start Talking</span>
-              </>
+          <div className="flex flex-col items-center gap-3 mb-8">
+            <button
+              onClick={handleVoiceToggle}
+              disabled={state === 'connecting' || state === 'error'}
+              className={`px-8 py-4 rounded-2xl font-medium text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                isListening ? 'animate-pulse' : ''
+              }`}
+              style={
+                isListening
+                  ? {
+                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                      color: 'white',
+                      boxShadow: '0 0 30px rgba(239, 68, 68, 0.5)',
+                    }
+                  : isConnected
+                  ? {
+                      background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                      color: 'white',
+                      boxShadow: 'var(--shadow-lg)',
+                    }
+                  : {
+                      background: 'var(--glass-bg)',
+                      backdropFilter: 'blur(var(--blur-md))',
+                      WebkitBackdropFilter: 'blur(var(--blur-md))',
+                      border: '1px solid var(--glass-border)',
+                      color: 'var(--text)',
+                    }
+              }
+            >
+              {state === 'connecting' && 'Connecting...'}
+              {state === 'idle' && isConnected && (
+                <>
+                  <Mic className="w-5 h-5" />
+                  <span>Start Talking</span>
+                </>
+              )}
+              {state === 'idle' && !isConnected && (
+                <>
+                  <Mic className="w-5 h-5" />
+                  <span>Connect Voice</span>
+                </>
+              )}
+              {isListening && (
+                <>
+                  <Square className="w-5 h-5" />
+                  <span>Stop Listening</span>
+                </>
+              )}
+              {state === 'processing' && 'Processing...'}
+              {state === 'speaking' && 'Speaking...'}
+              {state === 'error' && 'Error - Try Again'}
+            </button>
+            
+            {/* Disconnect Button */}
+            {isConnected && (
+              <button
+                onClick={closeSession}
+                className="px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                style={{
+                  background: 'var(--glass-bg)',
+                  backdropFilter: 'blur(var(--blur-md))',
+                  WebkitBackdropFilter: 'blur(var(--blur-md))',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                <Square className="w-4 h-4" />
+                <span>Disconnect</span>
+              </button>
             )}
-            {state === 'idle' && !isConnected && (
-              <>
-                <Mic className="w-5 h-5" />
-                <span>Connect Voice</span>
-              </>
-            )}
-            {isListening && (
-              <>
-                <Square className="w-5 h-5" />
-                <span>Stop Listening</span>
-              </>
-            )}
-            {state === 'processing' && 'Processing...'}
-            {state === 'speaking' && 'Speaking...'}
-            {state === 'error' && 'Error - Try Again'}
-          </button>
+          </div>
         )}
 
         {/* Error Message */}
