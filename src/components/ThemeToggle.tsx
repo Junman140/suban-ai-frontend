@@ -48,6 +48,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       setActualTheme(resolved);
       document.documentElement.setAttribute('data-theme', resolved);
+      
+      // Update theme-color meta tag dynamically
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+        themeColorMeta.setAttribute('content', bgColor);
+      }
     };
 
     updateActualTheme();
@@ -100,48 +107,60 @@ export const ThemeToggle: React.FC = () => {
     >
       <button
         onClick={() => setTheme('light')}
-        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
-          theme === 'light'
-            ? 'text-current'
-            : 'text-current opacity-60 hover:opacity-100'
-        }`}
-        style={theme === 'light' ? {
-          backgroundColor: 'var(--bg-hover)',
-        } : {}}
+        className="p-2 rounded-lg transition-all flex items-center justify-center gap-2"
+        style={{
+          color: 'var(--text)',
+          backgroundColor: theme === 'light' ? 'var(--bg-hover)' : 'transparent',
+          opacity: theme === 'light' ? 1 : 0.6
+        }}
+        onMouseEnter={(e) => {
+          if (theme !== 'light') e.currentTarget.style.opacity = '1';
+        }}
+        onMouseLeave={(e) => {
+          if (theme !== 'light') e.currentTarget.style.opacity = '0.6';
+        }}
         aria-label="Light theme"
         title="Light theme"
       >
-        <Sun className="w-4 h-4" style={{ color: 'var(--text)' }} />
+        <Sun className="w-4 h-4" />
       </button>
       <button
         onClick={() => setTheme('dark')}
-        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
-          theme === 'dark'
-            ? 'text-current'
-            : 'text-current opacity-60 hover:opacity-100'
-        }`}
-        style={theme === 'dark' ? {
-          backgroundColor: 'var(--bg-hover)',
-        } : {}}
+        className="p-2 rounded-lg transition-all flex items-center justify-center gap-2"
+        style={{
+          color: 'var(--text)',
+          backgroundColor: theme === 'dark' ? 'var(--bg-hover)' : 'transparent',
+          opacity: theme === 'dark' ? 1 : 0.6
+        }}
+        onMouseEnter={(e) => {
+          if (theme !== 'dark') e.currentTarget.style.opacity = '1';
+        }}
+        onMouseLeave={(e) => {
+          if (theme !== 'dark') e.currentTarget.style.opacity = '0.6';
+        }}
         aria-label="Dark theme"
         title="Dark theme"
       >
-        <Moon className="w-4 h-4" style={{ color: 'var(--text)' }} />
+        <Moon className="w-4 h-4" />
       </button>
       <button
         onClick={() => setTheme('system')}
-        className={`p-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
-          theme === 'system'
-            ? 'text-current'
-            : 'text-current opacity-60 hover:opacity-100'
-        }`}
-        style={theme === 'system' ? {
-          backgroundColor: 'var(--bg-hover)',
-        } : {}}
+        className="p-2 rounded-lg transition-all flex items-center justify-center gap-2"
+        style={{
+          color: 'var(--text)',
+          backgroundColor: theme === 'system' ? 'var(--bg-hover)' : 'transparent',
+          opacity: theme === 'system' ? 1 : 0.6
+        }}
+        onMouseEnter={(e) => {
+          if (theme !== 'system') e.currentTarget.style.opacity = '1';
+        }}
+        onMouseLeave={(e) => {
+          if (theme !== 'system') e.currentTarget.style.opacity = '0.6';
+        }}
         aria-label="System theme"
         title="Use system preference"
       >
-        <Monitor className="w-4 h-4" style={{ color: 'var(--text)' }} />
+        <Monitor className="w-4 h-4" />
       </button>
     </div>
   );

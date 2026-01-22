@@ -16,10 +16,11 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 bg-white/5 rounded-lg animate-pulse"
+          className="h-4 rounded-lg animate-pulse"
           style={{
             width: i === lines - 1 ? '60%' : '100%',
             animationDelay: `${i * 100}ms`,
+            backgroundColor: 'var(--bg-opacity-5)'
           }}
         />
       ))}

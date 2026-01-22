@@ -52,24 +52,47 @@ export const VoiceSelectorDropdown: React.FC<VoiceSelectorDropdownProps> = ({
       <button
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-4 py-3 border border-neutral-700 bg-neutral-800/50 text-neutral-100 text-left flex items-center justify-between transition-all ${
-          disabled 
-            ? 'opacity-50 cursor-not-allowed' 
-            : 'hover:border-neutral-600 cursor-pointer'
-        }`}
+        className="w-full px-4 py-3 text-left flex items-center justify-between transition-all input"
+        style={{
+          fontFamily: "'Times New Roman', Times, serif",
+          borderColor: 'var(--dropdown-border)',
+          backgroundColor: 'var(--dropdown-bg)',
+          color: 'var(--text)'
+        }}
+        onMouseEnter={(e) => {
+          if (!disabled) e.currentTarget.style.borderColor = 'var(--border-opacity-15)';
+        }}
+        onMouseLeave={(e) => {
+          if (!disabled) e.currentTarget.style.borderColor = 'var(--dropdown-border)';
+        }}
         aria-label="Select voice"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span className="text-sm text-neutral-100 leading-none">{selectedOption?.label}</span>
+        <span 
+          className="text-sm leading-none"
+          style={{ 
+            fontFamily: "'Times New Roman', Times, serif",
+            color: 'var(--text)'
+          }}
+        >
+          {selectedOption?.label}
+        </span>
         <ChevronDown
-          className={`w-4 h-4 text-neutral-400 transition-transform duration-200 flex-shrink-0 ml-3 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ml-3 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--text-opacity-60)' }}
         />
       </button>
 
       {isOpen && !disabled && (
         <div
-          className="absolute z-50 w-full mt-2 bg-neutral-900/95 backdrop-blur-md border-2 border-neutral-700/60 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
+          className="absolute w-full mt-2 backdrop-blur-md rounded-xl shadow-2xl overflow-y-auto"
+          style={{
+            zIndex: 'var(--z-dropdown)',
+            backgroundColor: 'var(--dropdown-bg)',
+            border: '2px solid var(--dropdown-border)',
+            maxHeight: '16rem'
+          }}
         >
           <div role="listbox" className="p-1.5">
             {VOICE_OPTIONS.map((option) => (
@@ -79,20 +102,48 @@ export const VoiceSelectorDropdown: React.FC<VoiceSelectorDropdownProps> = ({
                   onVoiceChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-all rounded-lg ${
-                  selectedVoice === option.value
-                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-md'
-                    : 'text-neutral-300 hover:bg-neutral-800/70 border border-transparent'
-                }`}
+                className="w-full px-4 py-3 text-left flex items-center gap-3 transition-all rounded-lg"
+                style={{
+                  fontFamily: "'Times New Roman', Times, serif",
+                  backgroundColor: selectedVoice === option.value ? 'var(--dropdown-item-selected-bg)' : 'var(--dropdown-item-bg)',
+                  color: selectedVoice === option.value ? 'var(--dropdown-item-selected-text)' : 'var(--text)',
+                  border: selectedVoice === option.value ? `1px solid var(--dropdown-item-selected-border)` : '1px solid transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedVoice !== option.value) {
+                    e.currentTarget.style.backgroundColor = 'var(--dropdown-item-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedVoice !== option.value) {
+                    e.currentTarget.style.backgroundColor = 'var(--dropdown-item-bg)';
+                  }
+                }}
                 role="option"
                 aria-selected={selectedVoice === option.value}
               >
                 {selectedVoice === option.value && (
-                  <Check className="w-5 h-5 flex-shrink-0 text-blue-400" />
+                  <Check 
+                    className="w-5 h-5 flex-shrink-0" 
+                    style={{ color: 'var(--color-info)' }}
+                  />
                 )}
                 <div className="flex-1">
-                  <div className="text-sm font-semibold">{option.label}</div>
-                  <div className={`text-xs ${selectedVoice === option.value ? 'text-blue-300/80' : 'text-neutral-400'}`}>
+                  <div 
+                    className="text-sm font-semibold"
+                    style={{ 
+                      fontFamily: "'Times New Roman', Times, serif"
+                    }}
+                  >
+                    {option.label}
+                  </div>
+                  <div 
+                    className="text-xs"
+                    style={{ 
+                      fontFamily: "'Times New Roman', Times, serif",
+                      color: selectedVoice === option.value ? 'var(--text-opacity-80)' : 'var(--text-opacity-60)'
+                    }}
+                  >
                     {option.description}
                   </div>
                 </div>

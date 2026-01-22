@@ -91,7 +91,13 @@ const TokenSearch: React.FC = () => {
           }}
         >
           {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div 
+              className="w-5 h-5 border-2 rounded-full animate-spin"
+              style={{ 
+                borderColor: 'var(--border-opacity-20)',
+                borderTopColor: 'var(--accent-primary)'
+              }}
+            />
           ) : 'Search'}
         </button>
       </form>
@@ -100,9 +106,9 @@ const TokenSearch: React.FC = () => {
         <div 
           className="p-4 mb-6 rounded-2xl flex items-center gap-3"
           style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            color: '#ef4444',
+            background: 'var(--color-error-bg)',
+            border: '1px solid var(--color-error)',
+            color: 'var(--color-error)',
           }}
         >
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -110,7 +116,12 @@ const TokenSearch: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+      <div 
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2"
+        style={{ 
+          maxHeight: '500px'
+        }}
+      >
         {results.length > 0 ? (
           results.map((token) => (
             <div 

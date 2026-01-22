@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import Link from 'next/link';
 import { getTokenBalance, getTokenPrice } from '@/lib/api';
 import { Wallet, RefreshCw } from 'lucide-react';
 
@@ -70,31 +71,82 @@ export const TokenBalance: React.FC = () => {
   const usdValue = balance.currentBalance * tokenPrice;
 
   return (
-    <div 
-      className="flex items-center gap-1.5 px-2.5 py-1.5 border border-white/10 bg-white/5 text-white rounded-lg transition-all duration-200"
+    <div
+      className="card flex flex-col gap-1"
+      style={{ 
+        fontFamily: "'Times New Roman', Times, serif",
+        padding: 'var(--space-1-5) var(--space-2-5)'
+      }}
     >
-      <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
-      <div className="flex items-center gap-1">
-        <span className="text-xs font-normal" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-          {balance.currentBalance.toFixed(2)}
-        </span>
-        <span className="text-xs text-white text-opacity-60" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-          tokens
-        </span>
+      <div className="flex items-center gap-2">
+        <Wallet 
+          className="w-4 h-4 flex-shrink-0" 
+          style={{ color: 'var(--text)' }}
+        />
+        <div className="flex items-center gap-2">
+          <span 
+            className="text-xs font-normal"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text)'
+            }}
+          >
+            {balance.currentBalance.toFixed(2)}
+          </span>
+          <span 
+            className="text-xs"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text-opacity-60)'
+            }}
+          >
+            tokens
+          </span>
+        </div>
+        {usdValue > 0 && (
+          <span 
+            className="text-xs"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text-opacity-60)'
+            }}
+          >
+            (${usdValue.toFixed(2)})
+          </span>
+        )}
+        <button
+          onClick={fetchBalance}
+          disabled={loading}
+          className="p-0.5 disabled:opacity-40 transition-all flex items-center justify-center ml-0.5 rounded"
+          style={{ 
+            backgroundColor: 'transparent',
+            color: 'var(--text)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          aria-label="Refresh balance"
+        >
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
-      {usdValue > 0 && (
-        <span className="text-xs text-white text-opacity-60" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-          (${usdValue.toFixed(2)})
-        </span>
-      )}
-      <button
-        onClick={fetchBalance}
-        disabled={loading}
-        className="p-0.5 disabled:opacity-40 transition-all flex items-center justify-center ml-0.5 hover:bg-white hover:bg-opacity-10 rounded"
-        aria-label="Refresh balance"
+      <div 
+        className="flex items-center gap-2 text-xs"
+        style={{ 
+          fontFamily: "'Times New Roman', Times, serif",
+          color: 'var(--text-opacity-60)'
+        }}
       >
-        <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-      </button>
+        <span>{balance.consumedAmount.toFixed(2)} used</span>
+        <Link 
+          href="/dashboard" 
+          className="transition-colors"
+          style={{ color: 'var(--text-opacity-60)' }}
+          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-opacity-60)'}
+        >
+          View history
+        </Link>
+      </div>
     </div>
   );
 };

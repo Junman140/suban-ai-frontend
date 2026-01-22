@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { SolanaWalletProvider } from "@/components/WalletProvider";
 import { ThemeProvider } from "@/components/ThemeToggle";
@@ -60,14 +61,18 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Likable AI" />
         <meta name="format-detection" content="telephone=no" />
+        <meta name="theme-color" content="#000000" id="theme-color-meta" />
       </head>
       <body
-        className={`${inter.variable} antialiased`}
+        className={`${inter.variable} antialiased page-transition`}
         suppressHydrationWarning
       >
         <ThemeProvider>
           <SolanaWalletProvider>
-            {children}
+            <div className="page-transition">
+              {children}
+            </div>
+            <Toaster richColors position="bottom-center" closeButton />
           </SolanaWalletProvider>
         </ThemeProvider>
       </body>

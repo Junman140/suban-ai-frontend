@@ -31,12 +31,12 @@ export const VoiceVisualization: React.FC<VoiceVisualizationProps> = ({
         style={{
           background: mode === 'character' 
             ? 'transparent'
-            : 'linear-gradient(135deg, #FFFFFF, #CCCCCC)',
+            : 'linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary))',
           boxShadow: state === 'speaking' 
-            ? '0 0 60px rgba(255, 255, 255, 0.4), 0 0 120px rgba(255, 255, 255, 0.2)'
+            ? `0 0 60px var(--voice-glow-speaking-strong), 0 0 120px var(--voice-glow-speaking-weak)`
             : state === 'listening'
-            ? '0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(255, 255, 255, 0.15)'
-            : '0 0 20px rgba(255, 255, 255, 0.15), 0 0 40px rgba(255, 255, 255, 0.1)',
+            ? `0 0 40px var(--voice-glow-listening-strong), 0 0 80px var(--voice-glow-listening-weak)`
+            : `0 0 20px var(--voice-glow-idle-strong), 0 0 40px var(--voice-glow-idle-weak)`,
         }}
       >
         {mode === 'character' ? (
@@ -58,10 +58,10 @@ export const VoiceVisualization: React.FC<VoiceVisualizationProps> = ({
       {/* State Indicator Text */}
       <div className="mt-6 text-center">
         <p
-          className="text-sm font-normal uppercase tracking-wider text-white"
+          className="text-sm font-normal uppercase tracking-wider"
           style={{ 
             fontFamily: "'Times New Roman', Times, serif",
-            color: state === 'error' ? '#ef4444' : '#FFFFFF',
+            color: state === 'error' ? 'var(--color-error)' : 'var(--text)',
             opacity: state === 'idle' ? 0.7 : 1,
           }}
         >

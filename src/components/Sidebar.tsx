@@ -1,36 +1,57 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, MessageCircle, Settings as SettingsIcon, Wallet as WalletIcon } from 'lucide-react';
-import { WalletButton } from './WalletButton';
-import { TokenBalance } from './TokenBalance';
+import Link from 'next/link';
+import { Menu, X, MessageCircle, Settings as SettingsIcon, Wallet as WalletIcon, LayoutDashboard, Search } from 'lucide-react';
 
 interface SidebarProps {
-  onTextChatOpen: () => void;
-  onSettingsOpen: () => void;
+  onTextChatOpen?: () => void;
+  onSettingsOpen?: () => void;
+  className?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onTextChatOpen, onSettingsOpen }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const hasDrawers = typeof onTextChatOpen === 'function' && typeof onSettingsOpen === 'function';
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div
-        className={`hidden lg:flex lg:flex-col fixed left-2 top-2 bottom-2 bg-black border border-white/10 rounded-lg transition-all duration-300 z-30 ${
+      <aside
+        className={`hidden lg:flex lg:flex-col border-r transition-all duration-300 flex-shrink-0 ${
           isExpanded ? 'w-64' : 'w-16'
         }`}
+        style={{ 
+          borderColor: 'var(--border-opacity-10)',
+          backgroundColor: 'var(--bg-secondary)',
+          zIndex: 'var(--z-sidebar)'
+        }}
       >
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+        <div 
+          className="p-4 border-b flex items-center justify-between"
+          style={{ borderColor: 'var(--border-opacity-5)' }}
+        >
           {isExpanded && (
-            <h1 className="text-xl font-normal text-white" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+            <h1 
+              className="text-xl font-normal"
+              style={{ 
+                fontFamily: "'Times New Roman', Times, serif",
+                color: 'var(--text)'
+              }}
+            >
               Likable AI
             </h1>
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 hover:bg-white hover:bg-opacity-10 rounded transition-colors text-white"
+            className="p-2 rounded transition-colors"
+            style={{ 
+              color: 'var(--text)',
+              backgroundColor: 'transparent'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {isExpanded ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -38,105 +59,216 @@ export const Sidebar: React.FC<SidebarProps> = ({ onTextChatOpen, onSettingsOpen
         </div>
 
         {/* Nav Items */}
-        <div className="flex-1 py-4">
+        <div className="flex-1 py-4 overflow-y-auto">
           <nav className="space-y-2 px-2">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onTextChatOpen();
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors text-left text-white cursor-pointer ${
+            {hasDrawers && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTextChatOpen!();
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
+                    !isExpanded && 'justify-center'
+                  }`}
+                  style={{ 
+                    fontFamily: "'Times New Roman', Times, serif",
+                    color: 'var(--text)',
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  aria-label="Text Chat"
+                >
+                  <MessageCircle className="w-5 h-5 flex-shrink-0" />
+                  {isExpanded && <span className="text-sm">Text Chat</span>}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSettingsOpen!();
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
+                    !isExpanded && 'justify-center'
+                  }`}
+                  style={{ 
+                    fontFamily: "'Times New Roman', Times, serif",
+                    color: 'var(--text)',
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  aria-label="Settings"
+                >
+                  <SettingsIcon className="w-5 h-5 flex-shrink-0" />
+                  {isExpanded && <span className="text-sm">Settings</span>}
+                </button>
+              </>
+            )}
+            <Link
+              href="/dashboard"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left no-underline ${
                 !isExpanded && 'justify-center'
               }`}
-              style={{ fontFamily: "'Times New Roman', Times, serif" }}
-            >
-              <MessageCircle className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && <span className="text-sm">Text Chat</span>}
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onSettingsOpen();
+              style={{ 
+                fontFamily: "'Times New Roman', Times, serif",
+                color: 'var(--text)',
+                backgroundColor: 'transparent'
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors text-left text-white cursor-pointer ${
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              aria-label="Dashboard"
+            >
+              <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+              {isExpanded && <span className="text-sm">Dashboard</span>}
+            </Link>
+            <Link
+              href="/explorer"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left no-underline ${
                 !isExpanded && 'justify-center'
               }`}
-              style={{ fontFamily: "'Times New Roman', Times, serif" }}
+              style={{ 
+                fontFamily: "'Times New Roman', Times, serif",
+                color: 'var(--text)',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              aria-label="Explorer"
             >
-              <SettingsIcon className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && <span className="text-sm">Settings</span>}
-            </button>
+              <Search className="w-5 h-5 flex-shrink-0" />
+              {isExpanded && <span className="text-sm">Explorer</span>}
+            </Link>
           </nav>
         </div>
 
-        {/* Footer - Empty now, wallet moved to header */}
-        <div className="border-t border-white/5 p-4">
+        {/* Footer */}
+        <div 
+          className="border-t p-4"
+          style={{ borderColor: 'var(--border-opacity-5)' }}
+        >
           {!isExpanded && (
             <div className="w-full flex justify-center">
-              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                <WalletIcon className="w-4 h-4 text-white opacity-50" />
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: 'var(--bg-opacity-5)' }}
+              >
+                <WalletIcon 
+                  className="w-4 h-4" 
+                  style={{ color: 'var(--text-opacity-50)' }}
+                />
               </div>
             </div>
           )}
         </div>
-      </div>
+      </aside>
 
       {/* Mobile Bottom Nav */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-30 safe-area-bottom">
+      <nav 
+        className="lg:hidden fixed bottom-0 left-0 right-0 safe-area-bottom"
+        style={{ 
+          backgroundColor: 'var(--bg-secondary)',
+          borderTop: '1px solid var(--border-opacity-10)',
+          zIndex: 'var(--z-sidebar)'
+        }}
+      >
         <div className="flex items-center justify-around px-4 py-3">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onTextChatOpen();
+          {hasDrawers && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onTextChatOpen!();
+                }}
+                className="flex flex-col items-center gap-1 p-2 cursor-pointer transition-colors"
+                style={{ 
+                  fontFamily: "'Times New Roman', Times, serif",
+                  color: 'var(--text)',
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                aria-label="Text Chat"
+              >
+                <MessageCircle className="w-6 h-6" />
+                <span className="text-xs">Chat</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSettingsOpen!();
+                }}
+                className="flex flex-col items-center gap-1 p-2 cursor-pointer transition-colors"
+                style={{ 
+                  fontFamily: "'Times New Roman', Times, serif",
+                  color: 'var(--text)',
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                aria-label="Settings"
+              >
+                <SettingsIcon className="w-6 h-6" />
+                <span className="text-xs">Settings</span>
+              </button>
+            </>
+          )}
+          <Link
+            href="/dashboard"
+            className="flex flex-col items-center gap-1 p-2 no-underline transition-colors"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text)',
+              backgroundColor: 'transparent'
             }}
-            className="flex flex-col items-center gap-1 p-2 text-white cursor-pointer"
-            aria-label="Text Chat"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            aria-label="Dashboard"
           >
-            <MessageCircle className="w-6 h-6" />
-            <span className="text-xs" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-              Chat
-            </span>
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onSettingsOpen();
+            <LayoutDashboard className="w-6 h-6" />
+            <span className="text-xs">Dashboard</span>
+          </Link>
+          <Link
+            href="/explorer"
+            className="flex flex-col items-center gap-1 p-2 no-underline transition-colors"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text)',
+              backgroundColor: 'transparent'
             }}
-            className="flex flex-col items-center gap-1 p-2 text-white cursor-pointer"
-            aria-label="Settings"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            aria-label="Explorer"
           >
-            <SettingsIcon className="w-6 h-6" />
-            <span className="text-xs" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-              Settings
-            </span>
-          </button>
-
+            <Search className="w-6 h-6" />
+            <span className="text-xs">Explorer</span>
+          </Link>
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              // Trigger wallet connection - this will open the wallet adapter modal
               const walletButton = document.querySelector('.wallet-adapter-button') as HTMLElement;
-              if (walletButton) {
-                walletButton.click();
-              }
+              if (walletButton) walletButton.click();
             }}
-            className="flex flex-col items-center gap-1 p-2 text-white cursor-pointer"
+            className="flex flex-col items-center gap-1 p-2 cursor-pointer transition-colors"
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              color: 'var(--text)',
+              backgroundColor: 'transparent'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             aria-label="Wallet"
           >
             <WalletIcon className="w-6 h-6" />
-            <span className="text-xs" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-              Wallet
-            </span>
+            <span className="text-xs">Wallet</span>
           </button>
         </div>
-      </div>
+      </nav>
     </>
   );
 };

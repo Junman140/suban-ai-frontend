@@ -8,7 +8,7 @@ import { VisualizationMode } from './VisualizationToggle';
 import { ConversationTranscript } from './ConversationTranscript';
 import { TextChatDrawer } from './TextChatDrawer';
 import { SettingsDrawer } from './SettingsDrawer';
-import { Sidebar } from './Sidebar';
+import { AppLayout } from './AppLayout';
 import { TokenBalance } from './TokenBalance';
 import { WalletButton } from './WalletButton';
 import { Mic, Square, Loader2, Radio } from 'lucide-react';
@@ -25,7 +25,6 @@ export const CompanionInterface: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption>('Ara');
   const [selectedModel, setSelectedModel] = useState<ModelOption>('grok-4-1-fast-non-reasoning');
-  const [unhingedMode, setUnhingedMode] = useState(false);
 
   // Load preferences from localStorage
   useEffect(() => {
@@ -37,11 +36,6 @@ export const CompanionInterface: React.FC = () => {
     const savedVoice = localStorage.getItem('selectedVoice') as VoiceOption;
     if (savedVoice && ['Ara', 'Rex', 'Sal', 'Eve', 'Leo'].includes(savedVoice)) {
       setSelectedVoice(savedVoice);
-    }
-
-    const savedUnhingedMode = localStorage.getItem('unhingedMode');
-    if (savedUnhingedMode === 'true') {
-      setUnhingedMode(true);
     }
 
     const savedModel = localStorage.getItem('selectedModel') as ModelOption;
@@ -60,10 +54,6 @@ export const CompanionInterface: React.FC = () => {
   }, [selectedVoice]);
 
   useEffect(() => {
-    localStorage.setItem('unhingedMode', unhingedMode.toString());
-  }, [unhingedMode]);
-
-  useEffect(() => {
     localStorage.setItem('selectedModel', selectedModel);
   }, [selectedModel]);
 
@@ -80,7 +70,6 @@ export const CompanionInterface: React.FC = () => {
   } = useVoiceCompanion({
     voice: selectedVoice,
     model: selectedModel,
-    unhingedMode: unhingedMode,
     onStateChange: (newState) => {
       if (newState === 'listening') {
         setIsListening(true);
@@ -125,32 +114,44 @@ export const CompanionInterface: React.FC = () => {
   const hasConversationStarted = transcripts.length > 0;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-black">
-      {/* Sidebar */}
-      <Sidebar
-        onTextChatOpen={() => setIsTextChatOpen(true)}
-        onSettingsOpen={() => setIsSettingsOpen(true)}
-      />
+    <AppLayout
+      onTextChatOpen={() => setIsTextChatOpen(true)}
+      onSettingsOpen={() => setIsSettingsOpen(true)}
+    >
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
+        {/* Header - Wallet UI in top right */}
+        <header 
+          className="flex items-center justify-end gap-3 p-4 flex-shrink-0"
+          style={{ 
+            zIndex: 'var(--z-header)',
+            backgroundColor: 'var(--bg)',
+            borderBottom: '1px solid var(--border-opacity-10)'
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <TokenBalance />
+            <WalletButton />
+          </div>
+        </header>
 
-      {/* Header - Wallet UI in top right */}
-      <header className="fixed top-2 right-2 lg:right-2 p-2 flex items-center justify-end gap-2 z-40 bg-black border border-white/10 rounded-lg">
-        <TokenBalance />
-        <WalletButton />
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-[280px] overflow-hidden pt-16">
-        <div className={`h-full flex transition-all duration-500 ${
+        {/* Content Area */}
+        <div className="flex-1 overflow-hidden">
+          <div className={`h-full flex transition-all duration-500 ${
           hasConversationStarted 
             ? 'flex-col lg:flex-row' // Split view when conversation started
             : 'flex-col items-center justify-center' // Centered view initially
         }`}>
           {/* Left Section - Voice Control */}
-          <div className={`flex-1 flex flex-col items-center justify-center p-8 lg:p-12 transition-all duration-500 ${
-            hasConversationStarted 
-              ? 'border-b lg:border-b-0 lg:border-r border-white/10' 
-              : ''
-          }`}>
+          <div 
+            className={`flex-1 flex flex-col items-center justify-center p-8 lg:p-12 transition-all duration-500 ${
+              hasConversationStarted 
+                ? 'border-b lg:border-b-0 lg:border-r' 
+                : ''
+            }`}
+            style={{ 
+              borderColor: hasConversationStarted ? 'var(--border-opacity-10)' : 'transparent'
+            }}
+          >
             <div className="w-full max-w-md space-y-8">
               {/* Voice Visualization */}
               <VoiceVisualization
@@ -167,14 +168,14 @@ export const CompanionInterface: React.FC = () => {
                   <button
                     onClick={handleVoiceToggle}
                     disabled={state === 'connecting' || state === 'error'}
-                    className={`w-full px-6 py-3 rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                      isListening
-                        ? 'bg-red-600 text-white'
-                        : isConnected
-                        ? 'bg-white text-black'
-                        : 'bg-white text-black hover:bg-gray-100'
+                    className={`w-full rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-primary btn-md ${
+                      isListening ? 'btn-danger' : ''
                     }`}
-                    style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: '1rem', boxShadow: '0 2px 8px rgba(255, 255, 255, 0.1)' }}
+                    style={{ 
+                      fontFamily: "'Times New Roman', Times, serif", 
+                      fontSize: 'var(--font-base)',
+                      boxShadow: isListening ? 'none' : 'var(--shadow-white-sm)'
+                    }}
                   >
                     {state === 'connecting' && 'Connecting...'}
                     {state === 'idle' && isConnected && (
@@ -213,8 +214,12 @@ export const CompanionInterface: React.FC = () => {
                   {isConnected && (
                     <button
                       onClick={closeSession}
-                      className="w-full px-4 py-2 bg-white text-black rounded-full hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
-                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: '0.875rem', boxShadow: '0 2px 8px rgba(255, 255, 255, 0.1)' }}
+                      className="w-full btn-secondary"
+                      style={{ 
+                        fontFamily: "'Times New Roman', Times, serif", 
+                        fontSize: 'var(--font-sm)'
+                      }}
+                      aria-label="Disconnect voice session"
                     >
                       <Square className="w-4 h-4" />
                       <span>Disconnect</span>
@@ -222,8 +227,17 @@ export const CompanionInterface: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="p-6 rounded-xl bg-white/5 border border-white/10 text-center">
-                  <p className="text-sm text-white" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+                <div 
+                  className="p-6 rounded-xl text-center card"
+                  style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                >
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      fontFamily: "'Times New Roman', Times, serif",
+                      color: 'var(--text)'
+                    }}
+                  >
                     Connect your wallet to start using the voice companion
                   </p>
                 </div>
@@ -231,8 +245,21 @@ export const CompanionInterface: React.FC = () => {
 
               {/* Error Message */}
               {errorMessage && (
-                <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/30 text-center">
-                  <p className="text-sm text-red-300" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+                <div 
+                  className="p-4 rounded-xl text-center"
+                  style={{ 
+                    backgroundColor: 'var(--color-error-bg)',
+                    border: '1px solid var(--color-error)',
+                    fontFamily: "'Times New Roman', Times, serif"
+                  }}
+                >
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      fontFamily: "'Times New Roman', Times, serif",
+                      color: 'var(--color-error-light)'
+                    }}
+                  >
                     {errorMessage}
                   </p>
                 </div>
@@ -246,6 +273,7 @@ export const CompanionInterface: React.FC = () => {
               <ConversationTranscript transcripts={transcripts} />
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -259,13 +287,11 @@ export const CompanionInterface: React.FC = () => {
         onModelChange={setSelectedModel}
         visualizationMode={visualizationMode}
         onVisualizationModeChange={setVisualizationMode}
-        unhingedMode={unhingedMode}
-        onUnhingedModeChange={setUnhingedMode}
         isSessionActive={isConnected}
       />
 
       {/* Text Chat Drawer */}
       <TextChatDrawer isOpen={isTextChatOpen} onClose={() => setIsTextChatOpen(false)} />
-    </div>
+    </AppLayout>
   );
 };

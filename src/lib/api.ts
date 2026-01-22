@@ -17,7 +17,6 @@ export interface VoiceSessionConfig {
   model?: string;
   systemInstructions?: string;
   temperature?: number;
-  unhingedMode?: boolean;
 }
 
 export interface VoiceSessionResponse {
@@ -123,6 +122,39 @@ export const getTokenPrice = async () => {
 
 export const getTokenStats = async () => {
   const response = await api.get('/token/stats');
+  return response.data;
+};
+
+/** Search tokens via Jupiter Ultra API (Explorer). */
+export const searchTokens = async (query: string) => {
+  const response = await api.get('/token/search', { params: { query } });
+  return response.data;
+};
+
+/** Usage history for a wallet (for dashboard / tokens-used UI). */
+export const getUsageHistory = async (walletAddress: string, limit = 50) => {
+  const response = await api.get(`/token/usage-history/${walletAddress}`, { params: { limit } });
+  return response.data;
+};
+
+/** Record a token deposit after on-chain transfer. Requires verified txHash. */
+export interface RecordDepositRequest {
+  walletAddress: string;
+  amount: number;
+  txHash: string;
+}
+export const recordDeposit = async (payload: RecordDepositRequest) => {
+  const response = await api.post('/token/deposit', payload);
+  return response.data;
+};
+
+/** Scan wallet ATA for recent incoming token transfers; verify and credit new ones. */
+export interface ScanDepositsResponse {
+  credited: Array<{ txHash: string; amount: number }>;
+  alreadyProcessed: number;
+}
+export const scanDeposits = async (walletAddress: string): Promise<ScanDepositsResponse> => {
+  const response = await api.post<ScanDepositsResponse>('/token/deposit/scan', { walletAddress });
   return response.data;
 };
 

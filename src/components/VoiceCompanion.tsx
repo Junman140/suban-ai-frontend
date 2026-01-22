@@ -25,12 +25,11 @@ export interface UseVoiceCompanionOptions {
   onError?: (error: string) => void;
   voice?: 'Ara' | 'Rex' | 'Sal' | 'Eve' | 'Leo';
   model?: 'grok-4-1-fast-non-reasoning' | 'grok-4-1-fast-reasoning';
-  unhingedMode?: boolean;
 }
 
 export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVoiceCompanionReturn => {
   const { connected, publicKey } = useWallet();
-  const { onStateChange, onTranscript, onError, voice = 'Ara', model = 'grok-4-1-fast-non-reasoning', unhingedMode = false } = options;
+  const { onStateChange, onTranscript, onError, voice = 'Ara', model = 'grok-4-1-fast-non-reasoning' } = options;
   
   const [state, setState] = useState<VoiceState>('idle');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -241,7 +240,6 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
         walletAddress: publicKey.toString(),
         voice: voice,
         model: model,
-        unhingedMode: unhingedMode,
       });
 
       setSessionId(session.sessionId);
@@ -496,7 +494,7 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
         onError?.(errorMessage);
       }
     }
-  }, [connected, publicKey, initializeAudio, updateState, onError, onTranscript, state, voice, model, unhingedMode]);
+  }, [connected, publicKey, initializeAudio, updateState, onError, onTranscript, state, voice, model]);
 
   // Start/stop listening (with server_vad, these are mostly for UI state)
   const startListening = useCallback(() => {

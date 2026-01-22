@@ -30,21 +30,26 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({ audioLevel, freque
       // Base gradient - Black background with white waves
       const gradient = ctx.createLinearGradient(0, 0, width, height);
       
+      // Get colors from CSS variables
+      const getColor = (cssVar: string) => {
+        return getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+      };
+      
       if (state === 'error') {
-        gradient.addColorStop(0, '#ef4444');
-        gradient.addColorStop(1, '#dc2626');
+        gradient.addColorStop(0, getColor('--audio-error-start'));
+        gradient.addColorStop(1, getColor('--audio-error-end'));
       } else if (state === 'listening') {
-        gradient.addColorStop(0, '#333333');
-        gradient.addColorStop(1, '#111111');
+        gradient.addColorStop(0, getColor('--audio-listening-start'));
+        gradient.addColorStop(1, getColor('--audio-listening-end'));
       } else if (state === 'speaking') {
-        gradient.addColorStop(0, '#444444');
-        gradient.addColorStop(1, '#222222');
+        gradient.addColorStop(0, getColor('--audio-speaking-start'));
+        gradient.addColorStop(1, getColor('--audio-speaking-end'));
       } else if (state === 'processing') {
-        gradient.addColorStop(0, '#555555');
-        gradient.addColorStop(1, '#333333');
+        gradient.addColorStop(0, getColor('--audio-processing-start'));
+        gradient.addColorStop(1, getColor('--audio-processing-end'));
       } else {
-        gradient.addColorStop(0, '#444444');
-        gradient.addColorStop(1, '#222222');
+        gradient.addColorStop(0, getColor('--audio-idle-start'));
+        gradient.addColorStop(1, getColor('--audio-idle-end'));
       }
 
       ctx.strokeStyle = gradient;

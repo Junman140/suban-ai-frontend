@@ -19,8 +19,12 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div
-      className={`${sizeClasses[size]} border-white/20 border-t-white rounded-full animate-spin ${className}`}
-      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      className={`${sizeClasses[size]} rounded-full animate-spin ${className}`}
+      style={{ 
+        fontFamily: "'Times New Roman', Times, serif",
+        borderColor: 'var(--border-opacity-20)',
+        borderTopColor: 'var(--accent-primary)'
+      }}
       aria-label="Loading"
       role="status"
     >

@@ -33,7 +33,11 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
   return (
     <div
       ref={scrollRef}
-      className={`flex-1 flex flex-col gap-8 overflow-y-auto p-6 lg:p-8 ${className}`}
+      className={`flex-1 flex flex-col gap-8 overflow-y-auto ${className}`}
+      style={{ 
+        padding: 'var(--space-6)',
+        maxHeight: '100%'
+      }}
     >
       {transcripts.map((item, index) => (
         <div
@@ -43,8 +47,11 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
           {/* Label */}
           <div className="mb-2 px-1">
             <span
-              className="text-xs font-normal uppercase tracking-wide text-white text-opacity-50"
-              style={{ fontFamily: "'Times New Roman', Times, serif" }}
+              className="text-xs font-normal uppercase tracking-wide"
+              style={{ 
+                fontFamily: "'Times New Roman', Times, serif",
+                color: 'var(--text-opacity-50)'
+              }}
             >
               {item.isUser ? 'You' : 'Likable AI'}
             </span>
@@ -52,11 +59,16 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
 
           {/* Message */}
           <div
-            className={`max-w-[85%] lg:max-w-[75%] px-5 py-3.5 rounded-2xl ${
-              item.isUser
-                ? 'bg-white text-black'
-                : 'bg-white/5 text-white'
+            className={`rounded-2xl ${
+              item.isUser ? '' : 'card'
             }`}
+            style={{ 
+              fontFamily: "'Times New Roman', Times, serif",
+              backgroundColor: item.isUser ? 'var(--accent-primary)' : undefined,
+              color: item.isUser ? 'var(--bg)' : 'var(--text)',
+              padding: item.isUser ? 'var(--space-3-5) var(--space-5)' : undefined,
+              maxWidth: 'var(--max-width-transcript)'
+            }}
           >
             <p
               className="text-base leading-relaxed whitespace-pre-wrap break-words"
@@ -69,8 +81,11 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
           {/* Timestamp */}
           <div className="mt-1 px-1">
             <span
-              className="text-xs text-white text-opacity-50"
-              style={{ fontFamily: "'Times New Roman', Times, serif" }}
+              className="text-xs"
+              style={{ 
+                fontFamily: "'Times New Roman', Times, serif",
+                color: 'var(--text-opacity-50)'
+              }}
             >
               {new Date(item.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',

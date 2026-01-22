@@ -39,27 +39,27 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
       case 'error':
         return {
           filter: 'hue-rotate(0deg) saturate(1.5)',
-          boxShadow: '0 0 30px rgba(239, 68, 68, 0.5)',
+          boxShadow: `0 0 30px var(--avatar-error-glow)`,
         };
       case 'listening':
         return {
           filter: 'brightness(1.1)',
-          boxShadow: '0 0 30px rgba(99, 102, 241, 0.5)',
+          boxShadow: `0 0 30px var(--avatar-listening-glow)`,
         };
       case 'speaking':
         return {
           filter: 'brightness(1.15)',
-          boxShadow: '0 0 40px rgba(139, 92, 246, 0.6)',
+          boxShadow: `0 0 40px var(--avatar-speaking-glow)`,
         };
       case 'processing':
         return {
           filter: 'brightness(1.05)',
-          boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)',
+          boxShadow: `0 0 25px var(--avatar-processing-glow)`,
         };
       default:
         return {
           filter: 'brightness(1)',
-          boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)',
+          boxShadow: `0 0 20px var(--avatar-idle-glow)`,
         };
     }
   };
@@ -93,26 +93,41 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
         )}
         {imageError && (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-1/2 h-1/2 rounded-full bg-white/20" />
+            <div 
+              className="w-1/2 h-1/2 rounded-full"
+              style={{ backgroundColor: 'var(--bg-opacity-20)' }}
+            />
           </div>
         )}
       </div>
 
       {/* State Indicator Overlay */}
       {state === 'listening' && (
-        <div className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-75" />
+        <div 
+          className="absolute inset-0 rounded-full border-4 animate-ping opacity-75"
+          style={{ borderColor: 'var(--color-info)' }}
+        />
       )}
       {state === 'speaking' && (
-        <div className="absolute inset-0 rounded-full border-4 border-purple-400 animate-pulse" />
+        <div 
+          className="absolute inset-0 rounded-full border-4 animate-pulse"
+          style={{ borderColor: 'var(--color-info)' }}
+        />
       )}
       {state === 'error' && (
-        <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-pulse" />
+        <div 
+          className="absolute inset-0 rounded-full border-4 animate-pulse"
+          style={{ borderColor: 'var(--color-error)' }}
+        />
       )}
 
       {/* Microphone indicator for listening state */}
       {state === 'listening' && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" />
+          <div 
+            className="w-3 h-3 rounded-full animate-pulse"
+            style={{ backgroundColor: 'var(--color-info)' }}
+          />
         </div>
       )}
     </div>
