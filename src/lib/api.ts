@@ -1,6 +1,25 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+/**
+ * Normalizes the API URL to always end with /api (without duplication)
+ * @param url - The API URL from environment variable or default
+ * @returns Normalized URL ending with /api
+ */
+function getApiBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  // Remove trailing slashes
+  let normalized = envUrl.replace(/\/+$/, '');
+  // Ensure it ends with /api (add if missing, don't duplicate)
+  if (!normalized.endsWith('/api')) {
+    normalized = `${normalized}/api`;
+  }
+  return normalized;
+}
+
+const API_URL = getApiBaseUrl();
+
+// Export the normalized API URL for use in other components
+export const getApiUrl = () => API_URL;
 
 const api = axios.create({
   baseURL: API_URL,

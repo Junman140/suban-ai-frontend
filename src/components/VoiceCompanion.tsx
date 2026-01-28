@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { createVoiceSession, closeVoiceSession } from '@/lib/api';
+import { createVoiceSession, closeVoiceSession, getApiUrl } from '@/lib/api';
 
 export type VoiceState = 'idle' | 'connecting' | 'listening' | 'processing' | 'speaking' | 'error';
 
@@ -254,9 +254,11 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
       setSessionId(session.sessionId);
 
       // Connect WebSocket
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
-      const wsBaseUrl = apiUrl.replace(/^https?:\/\//, '');
+      // session.wsUrl already includes /api, so we need the base URL without /api
+      const normalizedApiUrl = getApiUrl();
+      const baseUrl = normalizedApiUrl.replace(/\/api\/?$/, ''); // Remove trailing /api
+      const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+      const wsBaseUrl = baseUrl.replace(/^https?:\/\//, '');
       const wsUrl = `${wsProtocol}://${wsBaseUrl}${session.wsUrl}`;
       const ws = new WebSocket(wsUrl);
 

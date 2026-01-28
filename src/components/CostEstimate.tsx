@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { DollarSign } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface CostEstimateProps {
   requestType: 'chat' | 'voice';
@@ -22,7 +23,7 @@ export const CostEstimate: React.FC<CostEstimateProps> = ({ requestType }) => {
     const fetchCost = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/${requestType}/cost`
+          `${getApiUrl()}/${requestType}/cost`
         );
         setCost(response.data);
       } catch (error) {
