@@ -26,6 +26,15 @@ export const CompanionInterface: React.FC = () => {
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption>('Ara');
   const [selectedModel, setSelectedModel] = useState<ModelOption>('grok-4-1-fast-non-reasoning');
 
+  // Open drawers when navigated with a query flag (used by universal mobile nav).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const drawer = params.get('drawer');
+    if (drawer === 'chat') setIsTextChatOpen(true);
+    if (drawer === 'settings') setIsSettingsOpen(true);
+  }, []);
+
   // Load preferences from localStorage
   useEffect(() => {
     const savedMode = localStorage.getItem('visualizationMode') as VisualizationMode;
@@ -134,8 +143,10 @@ export const CompanionInterface: React.FC = () => {
           </div>
         </header>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-hidden">
+        {/* Content Area - reserve space for fixed bottom nav on mobile (safe-area aware) */}
+        <div
+          className="flex-1 overflow-hidden pb-[max(5rem,calc(5rem+env(safe-area-inset-bottom)))] lg:pb-0"
+        >
           <div className={`h-full flex transition-all duration-500 ${
           hasConversationStarted 
             ? 'flex-col lg:flex-row' // Split view when conversation started
@@ -160,6 +171,7 @@ export const CompanionInterface: React.FC = () => {
                 audioLevel={audioLevel}
                 frequencyData={frequencyData}
                 className="w-full"
+                characterImageUrl="/companioni.jpg"
               />
 
               {/* Controls */}
@@ -269,7 +281,7 @@ export const CompanionInterface: React.FC = () => {
 
           {/* Right Section - Transcript (only show when conversation started) */}
           {hasConversationStarted && (
-            <div className="flex-1 flex flex-col overflow-hidden pb-20 lg:pb-0">
+            <div className="flex-1 flex flex-col overflow-hidden">
               <ConversationTranscript transcripts={transcripts} />
             </div>
           )}

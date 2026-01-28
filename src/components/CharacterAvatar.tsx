@@ -11,7 +11,7 @@ interface CharacterAvatarProps {
 export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ 
   state, 
   className = '',
-  imageUrl = '/placeholder-character.png' // Placeholder - replace with your character image
+  imageUrl = '/companioni.jpg'
 }) => {
   const [imageError, setImageError] = useState(false);
 

@@ -2,13 +2,15 @@
 
 import React, { useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 export const WalletButton: React.FC = () => {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, disconnect } = useWallet();
   const { connection } = useConnection();
+  const { setVisible } = useWalletModal();
   const [mounted, setMounted] = React.useState(false);
 
+ 
   React.useEffect(() => {
     setMounted(true);
   }, []);
@@ -28,16 +30,26 @@ export const WalletButton: React.FC = () => {
         background: var(--accent-primary) !important;
         border: none !important;
         color: var(--bg) !important;
-        border-radius: var(--radius-full) !important;
-        padding: var(--space-1-5) var(--space-3) !important;
+        border-radius: 9999px !important;
+        padding: var(--space-1) var(--space-3) !important;
         font-family: 'Times New Roman', Times, serif !important;
         font-size: var(--font-sm) !important;
         font-weight: var(--font-weight-normal) !important;
         min-height: var(--button-height-compact) !important;
         height: auto !important;
+        line-height: 1 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         transition: all var(--transition-base) !important;
         text-transform: none !important;
         box-shadow: var(--shadow-white-sm) !important;
+      }
+      .wallet-adapter-button-start-icon,
+      .wallet-adapter-button-end-icon {
+        width: 14px !important;
+        height: 14px !important;
+        margin-right: 4px !important;
       }
       .wallet-adapter-button:hover:not([disabled]) {
         background: var(--accent-secondary) !important;
@@ -141,10 +153,32 @@ export const WalletButton: React.FC = () => {
     );
   }
 
+  const label = connected && publicKey
+    ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`
+    : 'Wallet';
+
   return (
     <div className="flex flex-col items-stretch gap-1.5 w-auto">
       <div className="wallet-button-wrapper flex items-center">
-        <WalletMultiButton className="!w-auto !justify-center" />
+        <button
+          type="button"
+          data-wallet-button
+          className="wallet-adapter-button"
+          onClick={() => {
+            // Always open modal; user asked for a single, universal "Wallet" action.
+                      
+            setVisible(true);
+          }}
+          onContextMenu={(e) => {
+            // Quick escape hatch: right-click disconnect.
+            if (!connected) return;
+            e.preventDefault();
+            disconnect().catch(() => {});
+          }}
+          aria-label="Wallet"
+        >
+          {label}
+        </button>
       </div>
       {connected && publicKey && getNetworkName() && (
         <div 

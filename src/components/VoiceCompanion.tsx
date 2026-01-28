@@ -50,6 +50,15 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
   const activeAudioSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const currentResponseIdRef = useRef<number>(0);
 
+  const sanitizeTranscript = useCallback((text: string): string => {
+    if (!text) return text;
+    let sanitized = text.replace(/\bGrok\b/gi, 'Likable');
+    sanitized = sanitized.replace(/\bxAI\b/gi, 'Likable');
+    sanitized = sanitized.replace(/I am Grok/gi, 'I am Likable');
+    sanitized = sanitized.replace(/I'm Grok/gi, "I'm Likable");
+    return sanitized;
+  }, []);
+
   const updateState = useCallback((newState: VoiceState) => {
     setState(newState);
     onStateChange?.(newState);
@@ -339,7 +348,8 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
             case 'transcript':
               // Assistant transcript delta - accumulate text
               if (data.text) {
-                currentAssistantTranscriptRef.current += data.text;
+                const delta = sanitizeTranscript(data.text);
+                currentAssistantTranscriptRef.current += delta;
                 // Update the last assistant transcript or create new one
                 setTranscripts((prev) => {
                   const newTranscripts = [...prev];
@@ -360,7 +370,7 @@ export const useVoiceCompanion = (options: UseVoiceCompanionOptions = {}): UseVo
                   }
                   return newTranscripts;
                 });
-                onTranscript?.(data.text, false);
+                onTranscript?.(delta, false);
               }
               break;
 

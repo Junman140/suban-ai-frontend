@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { SolanaWalletProvider } from "@/components/WalletProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeToggle";
 
 const inter = Inter({
@@ -12,10 +13,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Likable AI - Voice Companion & Market Analysis",
-  description: "Your personal AI companion for voice conversations, chart scenarios, emotional processing, and risk management. Powered by Solana blockchain.",
-  keywords: ["AI", "voice assistant", "market analysis", "trading", "risk management", "Solana", "crypto"],
-  authors: [{ name: "Likable AI" }],
+  title: "Likable - AI Trading Companion",
+  description: "Likable is your AI trading companion for voice conversations, chart scenarios, emotional processing, and risk management. Powered by Solana blockchain.",
+  keywords: ["AI companion", "voice companion", "market analysis", "trading", "risk management", "Solana", "crypto"],
+  authors: [{ name: "Likable" }],
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
   viewport: {
     width: "device-width",
     initialScale: 1,
@@ -36,14 +46,23 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    type: "website",
-    title: "Likable AI",
-    description: "Your personal AI companion for voice conversations and market analysis",
+  type: "website",
+  title: "Likable - AI Trading Companion",
+  description: "Likable is your AI trading companion for voice conversations and market analysis",
+    images: [
+      {
+        url: "/companioni.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Likable AI voice companion character",
+      },
+    ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Likable AI",
-    description: "Your personal AI companion for voice conversations and market analysis",
+  card: "summary_large_image",
+  title: "Likable - AI Trading Companion",
+  description: "Likable is your AI trading companion for voice conversations and market analysis",
+    images: ["/companioni.jpg"],
   },
 };
 
@@ -69,10 +88,12 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SolanaWalletProvider>
-            <div className="page-transition">
-              {children}
-            </div>
-            <Toaster richColors position="bottom-center" closeButton />
+            <AuthProvider>
+              <div className="page-transition">
+                {children}
+              </div>
+              <Toaster richColors position="bottom-center" closeButton />
+            </AuthProvider>
           </SolanaWalletProvider>
         </ThemeProvider>
       </body>

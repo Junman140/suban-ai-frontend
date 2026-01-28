@@ -9,6 +9,38 @@ const api = axios.create({
   },
 });
 
+// Simple auth token helpers (localStorage-based)
+const AUTH_TOKEN_KEY = 'likable_auth_token';
+
+export const setAuthToken = (token: string | null) => {
+  if (typeof window === 'undefined') return;
+  if (!token) {
+    window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  } else {
+    window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+};
+
+export const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+export const clearAuthToken = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+};
+
+// Attach Authorization header automatically when token is present
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers = config.headers || {};
+    (config.headers as any).Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Voice Session APIs
 export interface VoiceSessionConfig {
   walletAddress: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { searchTokens } from '@/lib/api';
 import { Search, Info, TrendingUp, Users, ChevronRight, AlertCircle } from 'lucide-react';
 
@@ -21,6 +21,7 @@ const TokenSearch: React.FC = () => {
   const [results, setResults] = useState<TokenInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -41,38 +42,23 @@ const TokenSearch: React.FC = () => {
 
   return (
     <div 
-      className="w-full max-w-4xl mx-auto p-4 md:p-8 rounded-3xl transition-all duration-300"
+      className="w-full max-w-4xl mx-auto p-4 md:p-5 rounded-2xl transition-all duration-200"
       style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--blur-xl))',
-        WebkitBackdropFilter: 'blur(var(--blur-xl))',
-        border: '1px solid var(--glass-border)',
-        boxShadow: 'var(--shadow-xl)',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-opacity-10)',
+        boxShadow: 'var(--shadow-md)',
       }}
     >
-      <div className="flex items-center gap-4 mb-8">
-        <div 
-          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          <Search className="w-6 h-6 text-white" />
-        </div>
-        <div className="flex flex-col justify-center">
-          <h2 className="text-xl md:text-2xl font-bold leading-tight" style={{ color: 'var(--text)' }}>Token Explorer</h2>
-          <p className="text-sm opacity-60 leading-tight" style={{ color: 'var(--text-secondary)' }}>Powered by Jupiter Ultra API</p>
-        </div>
-      </div>
+      {/* Header removed here; page provides heading */}
 
       <form onSubmit={handleSearch} className="relative mb-8 group">
         <input
+          ref={inputRef}
           type="text"
           placeholder="Search by name, symbol, or mint address..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-6 py-4 rounded-2xl transition-all duration-200 outline-none"
+          className="w-full px-5 py-3 rounded-2xl transition-all duration-200 outline-none"
           style={{
             background: 'var(--bg-elevated)',
             border: '1px solid var(--border-subtle)',
@@ -80,26 +66,6 @@ const TokenSearch: React.FC = () => {
             fontSize: '1rem',
           }}
         />
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-            color: 'white',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          {loading ? (
-            <div 
-              className="w-5 h-5 border-2 rounded-full animate-spin"
-              style={{ 
-                borderColor: 'var(--border-opacity-20)',
-                borderTopColor: 'var(--accent-primary)'
-              }}
-            />
-          ) : 'Search'}
-        </button>
       </form>
 
       {error && (
@@ -116,12 +82,7 @@ const TokenSearch: React.FC = () => {
         </div>
       )}
 
-      <div 
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2"
-        style={{ 
-          maxHeight: '500px'
-        }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {results.length > 0 ? (
           results.map((token) => (
             <div 
@@ -178,43 +139,19 @@ const TokenSearch: React.FC = () => {
                 <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" style={{ color: 'var(--accent-primary)' }} />
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <div 
-                  className="flex flex-col gap-1 p-2 rounded-lg"
-                  style={{ background: 'var(--bg-hover)' }}
-                >
-                  <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <TrendingUp className="w-3 h-3 text-green-500 flex-shrink-0" />
-                    <span>Score</span>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
+              <div className="mt-4 flex flex-wrap gap-3 text-[11px] opacity-70" style={{ color: 'var(--text-secondary)' }}>
+                <span>
+                  Score:{' '}
+                  <strong style={{ color: 'var(--text)' }}>
                     {token.organicScore?.toFixed(1) || 'N/A'}
-                  </span>
-                </div>
-                <div 
-                  className="flex flex-col gap-1 p-2 rounded-lg"
-                  style={{ background: 'var(--bg-hover)' }}
-                >
-                  <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <Users className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                    <span>Holders</span>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
+                  </strong>
+                </span>
+                <span>
+                  Holders:{' '}
+                  <strong style={{ color: 'var(--text)' }}>
                     {token.holderCount ? (token.holderCount > 1000 ? (token.holderCount/1000).toFixed(1) + 'k' : token.holderCount) : 'N/A'}
-                  </span>
-                </div>
-                <div 
-                  className="flex flex-col gap-1 p-2 rounded-lg"
-                  style={{ background: 'var(--bg-hover)' }}
-                >
-                  <div className="flex items-center gap-1 text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <Info className="w-3 h-3 text-purple-500 flex-shrink-0" />
-                    <span>MCap</span>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>
-                    {token.marketCap ? '$' + (token.marketCap / 1e6).toFixed(1) + 'M' : 'N/A'}
-                  </span>
-                </div>
+                  </strong>
+                </span>
               </div>
             </div>
           ))

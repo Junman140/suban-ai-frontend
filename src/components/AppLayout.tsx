@@ -16,14 +16,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   return (
     <div 
-      className="flex h-screen w-full overflow-hidden transition-colors duration-200"
+      className="flex min-h-screen h-dvh w-full overflow-x-hidden transition-colors duration-200"
       style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
     >
       <Sidebar 
         onTextChatOpen={onTextChatOpen}
         onSettingsOpen={onSettingsOpen}
       />
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
         {children}
       </main>
     </div>
